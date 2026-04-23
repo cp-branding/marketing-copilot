@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Marketing Co-Pilot · LOGIN</title>
+<link rel="icon" type="image/png" href="./Favicon.png">
+<link rel="stylesheet" href="./co-pilot-design-system.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  /* Keyboard-only Focus-Ring (A11y) */
+  :focus { outline: none; }
+  :focus-visible { outline: var(--cp-border) solid var(--cp-orange); outline-offset: 2px; }
+  input:focus-visible { outline: none; } /* Inputs haben eigenen Glow */
+
+  body {
+    min-height: 100vh;
+    background: var(--cp-navy);
+    color: var(--cp-off-white);
+    font-family: var(--cp-font-ui);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(20px, 5vw, 40px);
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(var(--cp-line) var(--px), transparent var(--px)),
+      linear-gradient(90deg, var(--cp-line) var(--px), transparent var(--px));
+    background-size: clamp(20px, 4vw, 28px) clamp(20px, 4vw, 28px);
+    opacity: 0.25;
+    pointer-events: none;
+    mask-image: radial-gradient(ellipse at center, #000 30%, transparent 70%);
+  }
+
+  .logo {
+    width: clamp(220px, 32vw, 313px);
+    height: auto;
+    margin-bottom: clamp(24px, 4vw, 40px);
+    filter: drop-shadow(0 0 40px rgba(255,145,77,0.15));
+  }
+
+  .card {
+    width: 100%;
+    max-width: 440px;
+    background: var(--cp-navy-deep);
+    border: var(--cp-border-chunky) solid var(--cp-orange);
+    border-radius: var(--cp-radius-card);
+    padding: clamp(24px, 5vw, 40px) clamp(20px, 4vw, 36px);
+    box-shadow: var(--cp-shadow-pixel-lg);
+    position: relative;
+    z-index: 1;
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: calc(clamp(24px, 5vw, 40px) * -1) calc(clamp(20px, 4vw, 36px) * -1) clamp(24px, 4vw, 32px);
+    padding: 10px clamp(20px, 4vw, 36px);
+    background: var(--cp-orange);
+    color: var(--cp-black);
+    border-bottom: var(--cp-border) solid var(--cp-black);
+    border-top-left-radius: calc(var(--cp-radius-card) - 2px);
+    border-top-right-radius: calc(var(--cp-radius-card) - 2px);
+    font-family: var(--cp-font-display);
+    font-size: clamp(0.625rem, 1.6vw, 0.75rem);
+    letter-spacing: 0.08em;
+  }
+  .card-header .dots { display: flex; gap: 6px; }
+  .card-header .dot {
+    width: 10px; height: 10px;
+    background: #1F1F1F;
+    border-radius: 1px;
+  }
+  .card-header .dot:nth-child(2) { opacity: 0.55; }
+  .card-header .dot:nth-child(3) { opacity: 0.3; }
+
+  .greeting {
+    font-family: var(--cp-font-display);
+    font-size: clamp(1.125rem, 3.2vw, 1.5rem);
+    color: var(--cp-orange);
+    margin-bottom: 10px;
+    line-height: 1.2;
+  }
+  .greeting::before {
+    content: '> ';
+    color: var(--cp-off-white);
+    font-family: var(--cp-font-mono);
+  }
+
+  .subheading {
+    font-family: var(--cp-font-mono);
+    font-size: clamp(1rem, 1.8vw, 1.125rem);
+    color: #D8DDE2;
+    margin-bottom: clamp(20px, 3.5vw, 28px);
+    line-height: 1.4;
+  }
+
+  label {
+    display: block;
+    font-family: var(--cp-font-display);
+    font-size: 0.625rem;
+    color: var(--cp-orange);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  label::before { content: '> '; color: var(--cp-off-white); font-family: var(--cp-font-mono); font-size: 1.2em; }
+
+  input[type="email"],
+  input[type="password"] {
+    width: 100%;
+    background: var(--cp-off-white);
+    color: var(--cp-black);
+    border: var(--cp-border) solid var(--cp-black);
+    border-radius: var(--cp-radius-chip);
+    padding: 14px 16px;
+    font-family: var(--cp-font-mono);
+    font-size: 1.125rem;
+    letter-spacing: 0.02em;
+    outline: none;
+    box-shadow: var(--px) var(--px) 0 var(--cp-orange-deep);
+    margin-bottom: 20px;
+    transition: box-shadow var(--cp-dur) var(--cp-ease);
+    min-height: 48px;
+  }
+  input[type="email"]:focus, input[type="password"]:focus { box-shadow: var(--cp-shadow-glow); }
+  input::placeholder { color: #9AA3AC; }
+
+  button[type="submit"] {
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: var(--cp-orange);
+    color: var(--cp-black);
+    border: var(--cp-border) solid var(--cp-black);
+    border-radius: var(--cp-radius-chip);
+    padding: 14px 18px;
+    font-family: var(--cp-font-display);
+    font-size: clamp(0.75rem, 1.6vw, 0.875rem);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    box-shadow: var(--cp-shadow-pixel);
+    transition: transform var(--cp-dur) var(--cp-ease), box-shadow var(--cp-dur) var(--cp-ease), background var(--cp-dur) var(--cp-ease);
+    margin-top: 8px;
+    min-height: 52px;
+  }
+  button[type="submit"]:hover {
+    background: var(--cp-orange-soft);
+    transform: translate(-1px, -1px);
+    box-shadow: var(--cp-shadow-pixel-lg);
+  }
+  button[type="submit"]:active {
+    transform: translate(2px, 2px);
+    box-shadow: 0 0 0 var(--cp-black);
+  }
+  button[type="submit"]:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+
+  .btn-icon {
+    display: inline-grid;
+    place-items: center;
+    width: 24px; height: 24px;
+    background: var(--cp-black);
+    border: var(--cp-border) solid var(--cp-black);
+    border-radius: 2px;
+    color: var(--cp-off-white);
+    line-height: 0;
+  }
+  .btn-icon svg { width: 10px; height: 10px; fill: currentColor; shape-rendering: crispEdges; }
+
+  .error {
+    display: none;
+    background: rgba(255, 107, 107, 0.08);
+    border: var(--cp-border) solid var(--cp-danger, #FF6B6B);
+    border-radius: var(--cp-radius-chip);
+    padding: 12px 14px;
+    font-family: var(--cp-font-mono);
+    font-size: 1rem;
+    color: var(--cp-danger, #FF6B6B);
+    margin-top: 16px;
+    line-height: 1.4;
+  }
+  .error::before { content: '! '; font-weight: 700; }
+  .error.show { display: block; }
+
+  .footer-note {
+    margin-top: clamp(20px, 3.5vw, 28px);
+    padding-top: clamp(16px, 3vw, 20px);
+    border-top: 1px dashed rgba(255,145,77,0.35);
+    font-family: var(--cp-font-mono);
+    font-size: 1rem;
+    color: #9AA3AC;
+    text-align: center;
+    line-height: 1.5;
+  }
+  .footer-note strong { color: var(--cp-orange); font-weight: normal; }
+</style>
+</head>
+<body class="cp-root">
+
+<img class="logo" src="./Logo.png" alt="CO-PILOT">
+
+<div class="card">
+  <div class="card-header">
+    <div class="dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+    <span>LOGIN.EXE</span>
+  </div>
+
+  <h2 class="greeting">Moin.</h2>
+  <p class="subheading">Email &amp; Passwort — dann geht's los.</p>
+
+  <form id="loginForm">
+    <label for="email">Email</label>
+    <input type="email" id="email" placeholder="du@beispiel.de" autocomplete="email" autocapitalize="off" autocorrect="off" spellcheck="false" inputmode="email" autofocus />
+    <label for="password">Passwort</label>
+    <input type="password" id="password" placeholder="••••••••" autocomplete="current-password" />
+    <button type="submit" id="submitBtn">
+      <span class="btn-icon"><svg viewBox="0 0 10 10"><polygon points="2,1 2,9 9,5"/></svg></span>
+      <span id="btnLabel">START</span>
+    </button>
+    <div class="error" id="errorMsg">Email oder Passwort falsch. Nochmal.</div>
+  </form>
+
+  <p class="footer-note">Kein Passwort? Meld dich bei <strong>Constantin</strong>.</p>
+</div>
+
+<script>
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('submitBtn');
+  const label = document.getElementById('btnLabel');
+  const err = document.getElementById('errorMsg');
+  const email = document.getElementById('email').value.trim();
+  const pw = document.getElementById('password').value;
+
+  if (!email || !email.includes('@')) {
+    err.textContent = 'Bitte eine gültige Email eingeben.';
+    err.classList.add('show');
+    document.getElementById('email').focus();
+    return;
+  }
+
+  btn.disabled = true;
+  label.textContent = 'LOADING...';
+  err.classList.remove('show');
+
+  try {
+    const res = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password: pw })
+    });
+
+    if (res.ok) {
+      label.textContent = 'OK →';
+      window.location.href = '/';
+    } else {
+      err.textContent = 'Email oder Passwort falsch. Nochmal.';
+      err.classList.add('show');
+      btn.disabled = false;
+      label.textContent = 'START';
+      document.getElementById('password').focus();
+    }
+  } catch {
+    err.textContent = 'Verbindungsfehler. Kurz warten und nochmal.';
+    err.classList.add('show');
+    btn.disabled = false;
+    label.textContent = 'START';
+  }
+});
+</script>
+</body>
+</html>

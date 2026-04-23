@@ -1,0 +1,1970 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Marketing Co-Pilot</title>
+<link rel="icon" type="image/png" href="./Favicon.png">
+<link rel="stylesheet" href="./co-pilot-design-system.css">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* Keyboard-only Focus-Ring (WCAG 2.4.7). Maus-Klicks zeigen keinen Ring — nur Tab-Navigation. */
+:focus { outline: none; }
+:focus-visible {
+  outline: var(--cp-border) solid var(--cp-orange);
+  outline-offset: 2px;
+}
+textarea#input:focus-visible { outline: none; } /* Input hat eigenen Glow-Stil */
+
+body {
+  font-family: var(--cp-font-ui);
+  background: var(--cp-navy);
+  color: var(--cp-off-white);
+  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Faint pixel grid — applied via pseudo so it never disturbs layout */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(var(--cp-line) var(--px), transparent var(--px)),
+    linear-gradient(90deg, var(--cp-line) var(--px), transparent var(--px));
+  background-size: clamp(20px, 3vw, 28px) clamp(20px, 3vw, 28px);
+  opacity: 0.18;
+  pointer-events: none;
+  z-index: 0;
+  mask-image: radial-gradient(ellipse at center, #000 20%, transparent 75%);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SELECTOR VIEW
+   ═══════════════════════════════════════════════════════════════════════════ */
+#selectorView {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: clamp(32px, 6vw, 64px) clamp(16px, 4vw, 32px) clamp(32px, 5vw, 48px);
+  overflow-y: auto;
+  background: var(--cp-navy);
+}
+
+.select-header {
+  text-align: center;
+  margin-bottom: clamp(28px, 4vw, 44px);
+  width: 100%;
+  max-width: 900px;
+  position: relative;
+  z-index: 1;
+}
+
+.select-logo {
+  display: flex;
+  justify-content: center;
+  margin-bottom: clamp(20px, 3vw, 32px);
+  filter: drop-shadow(0 0 40px rgba(255,145,77,0.18));
+}
+
+/* Pixel CO-PILOT monitor plate */
+.cp-monitor {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  padding: clamp(10px, 1.4vw, 14px) clamp(12px, 1.6vw, 16px);
+  background: var(--cp-orange);
+  border: var(--cp-border-chunky) solid var(--cp-black);
+  border-radius: var(--cp-radius-card);
+  box-shadow:
+    var(--px) var(--px) 0 var(--cp-black),
+    var(--px-3) var(--px-3) 0 var(--cp-orange-deep);
+}
+.cp-monitor__icon-row {
+  display: flex;
+}
+.cp-monitor__icon {
+  display: grid;
+  place-items: center;
+  width: clamp(28px, 3.2vw, 38px);
+  height: clamp(28px, 3.2vw, 38px);
+  background: var(--cp-off-white);
+  border: var(--cp-border) solid var(--cp-black);
+  color: var(--cp-black);
+  border-radius: 2px;
+}
+.cp-monitor__icon svg {
+  width: 55%;
+  height: 55%;
+  shape-rendering: crispEdges;
+}
+.cp-monitor__label {
+  display: inline-flex;
+  align-items: center;
+  padding: clamp(6px, 0.9vw, 9px) clamp(10px, 1.4vw, 16px);
+  background: var(--cp-off-white);
+  border: var(--cp-border) solid var(--cp-black);
+  border-radius: 2px;
+  font-family: var(--cp-font-display);
+  font-size: clamp(0.875rem, 1.8vw, 1.375rem);
+  color: var(--cp-black);
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  line-height: 1;
+}
+.cp-monitor__label::before {
+  content: '> ';
+  color: var(--cp-orange-deep);
+  font-family: var(--cp-font-mono);
+  font-size: 1.3em;
+  margin-right: 0.25em;
+  line-height: 0;
+  transform: translateY(0.05em);
+}
+
+.select-header h1 {
+  font-family: var(--cp-font-display);
+  font-size: clamp(1.25rem, 3.2vw, 1.75rem);
+  color: var(--cp-orange);
+  margin-bottom: 14px;
+  letter-spacing: 0.02em;
+  line-height: 1.25;
+}
+.select-header h1::before {
+  content: '> ';
+  color: var(--cp-orange);
+  font-family: var(--cp-font-mono);
+}
+
+.select-header p {
+  font-family: var(--cp-font-mono);
+  font-size: clamp(1rem, 1.6vw, 1.25rem);
+  color: #D8DDE2;
+  line-height: 1.4;
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.logout-btn {
+  margin-top: 20px;
+  background: transparent;
+  border: var(--cp-border) solid var(--cp-orange);
+  border-radius: var(--cp-radius-chip);
+  padding: 9px 18px;
+  font-family: var(--cp-font-display);
+  font-size: 0.625rem;
+  letter-spacing: 0.08em;
+  color: var(--cp-orange);
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: background var(--cp-dur) var(--cp-ease), color var(--cp-dur) var(--cp-ease);
+}
+.logout-btn:hover { background: var(--cp-orange); color: var(--cp-black); }
+
+/* Mode grid */
+.mode-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(16px, 2.5vw, 24px);
+  width: 100%;
+  max-width: 1040px;
+  position: relative;
+  z-index: 1;
+}
+
+.mode-card {
+  background: var(--cp-navy-deep);
+  border: var(--cp-border-chunky) solid var(--cp-orange);
+  border-radius: var(--cp-radius-card);
+  padding: clamp(20px, 2.5vw, 28px) clamp(18px, 2.2vw, 24px);
+  cursor: pointer;
+  transition: transform var(--cp-dur) var(--cp-ease), box-shadow var(--cp-dur) var(--cp-ease);
+  box-shadow: var(--cp-shadow-pixel);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 260px;
+}
+.mode-card:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: var(--cp-shadow-pixel-lg);
+}
+.mode-card:active {
+  transform: translate(1px, 1px);
+  box-shadow: var(--px) var(--px) 0 var(--cp-black);
+}
+
+.mode-card.fix {
+  border-color: var(--cp-danger, #FF6B6B);
+  box-shadow:
+    var(--px) var(--px) 0 var(--cp-black),
+    var(--px-2) var(--px-2) 0 var(--cp-danger-deep, #C43838);
+}
+.mode-card.fix:hover {
+  box-shadow:
+    var(--px) var(--px) 0 var(--cp-black),
+    var(--px-3) var(--px-3) 0 var(--cp-danger-deep, #C43838);
+}
+
+.mode-card.roast {
+  border-color: var(--cp-cool, #5BA3D0);
+  box-shadow:
+    var(--px) var(--px) 0 var(--cp-black),
+    var(--px-2) var(--px-2) 0 var(--cp-cool-deep, #3D7DA3);
+}
+.mode-card.roast:hover {
+  box-shadow:
+    var(--px) var(--px) 0 var(--cp-black),
+    var(--px-3) var(--px-3) 0 var(--cp-cool-deep, #3D7DA3);
+}
+
+.mode-icon {
+  font-size: 32px;
+  margin-bottom: 14px;
+  line-height: 1;
+  filter: drop-shadow(0 0 8px rgba(255,145,77,0.3));
+}
+.mode-card.fix .mode-icon { filter: drop-shadow(0 0 8px rgba(255,107,107,0.35)); }
+.mode-card.roast .mode-icon { filter: drop-shadow(0 0 8px rgba(91,163,208,0.4)); }
+
+.mode-tag {
+  font-family: var(--cp-font-display);
+  font-size: 0.5625rem;
+  letter-spacing: 0.1em;
+  color: var(--cp-orange);
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+.mode-card.fix .mode-tag { color: var(--cp-danger, #FF6B6B); }
+.mode-card.roast .mode-tag { color: var(--cp-cool, #5BA3D0); }
+
+.mode-title {
+  font-family: var(--cp-font-display);
+  font-size: clamp(0.875rem, 1.4vw, 1rem);
+  color: var(--cp-off-white);
+  margin-bottom: 12px;
+  line-height: 1.25;
+  letter-spacing: 0.02em;
+}
+
+.mode-desc {
+  font-family: var(--cp-font-ui);
+  font-size: 0.875rem;
+  color: #D8DDE2;
+  line-height: 1.55;
+  flex-grow: 1;
+}
+
+.mode-meta {
+  font-family: var(--cp-font-mono);
+  font-size: 0.9375rem;
+  color: #9AA3AC;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px dashed rgba(255,145,77,0.3);
+  letter-spacing: 0.02em;
+}
+.mode-card.fix .mode-meta { border-top-color: rgba(255,107,107,0.3); }
+.mode-card.roast .mode-meta { border-top-color: rgba(91,163,208,0.35); }
+
+.resume-link {
+  margin-top: 10px;
+  display: inline-block;
+  font-family: var(--cp-font-mono);
+  font-size: 0.9375rem;
+  color: var(--cp-orange);
+  cursor: pointer;
+  padding: 6px 12px;
+  background: rgba(255,145,77,0.1);
+  border: var(--cp-border) solid var(--cp-orange);
+  border-radius: var(--cp-radius-chip);
+  transition: background var(--cp-dur) var(--cp-ease);
+}
+.resume-link:hover { background: rgba(255,145,77,0.2); }
+.mode-card.fix .resume-link {
+  color: var(--cp-danger, #FF6B6B);
+  background: rgba(255,107,107,0.1);
+  border-color: var(--cp-danger, #FF6B6B);
+}
+.mode-card.fix .resume-link:hover { background: rgba(255,107,107,0.2); }
+.mode-card.roast .resume-link {
+  color: var(--cp-cool, #5BA3D0);
+  background: rgba(91,163,208,0.1);
+  border-color: var(--cp-cool, #5BA3D0);
+}
+.mode-card.roast .resume-link:hover { background: rgba(91,163,208,0.2); }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CHAT VIEW
+   ═══════════════════════════════════════════════════════════════════════════ */
+#chatView {
+  display: none;
+  flex-direction: column;
+  height: 100vh;
+  position: relative;
+  z-index: 1;
+}
+
+.chat-header {
+  padding: 12px clamp(14px, 2.5vw, 22px);
+  background: var(--cp-navy-deep);
+  border-bottom: var(--cp-border-chunky) solid var(--cp-orange);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+  z-index: 10;
+  box-shadow: 0 var(--px) 0 var(--cp-orange-deep);
+}
+#chatView.mode-roast .chat-header {
+  border-bottom-color: var(--cp-cool, #5BA3D0);
+  box-shadow: 0 var(--px) 0 var(--cp-cool-deep, #3D7DA3);
+}
+#chatView.mode-fix .chat-header {
+  border-bottom-color: var(--cp-danger, #FF6B6B);
+  box-shadow: 0 var(--px) 0 var(--cp-danger-deep, #C43838);
+}
+
+.back-btn {
+  height: 38px;
+  padding: 0 14px;
+  background: transparent;
+  border: var(--cp-border) solid var(--cp-orange);
+  border-radius: var(--cp-radius-chip);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--cp-font-display);
+  font-size: 0.5625rem;
+  letter-spacing: 0.06em;
+  color: var(--cp-orange);
+  text-transform: uppercase;
+  transition: background var(--cp-dur) var(--cp-ease), color var(--cp-dur) var(--cp-ease);
+  flex-shrink: 0;
+}
+.back-btn:hover { background: var(--cp-orange); color: var(--cp-black); }
+
+.header-info { flex: 1; min-width: 0; }
+.header-mode {
+  font-family: var(--cp-font-display);
+  font-size: 0.5rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--cp-orange);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+#chatView.mode-roast .header-mode { color: var(--cp-cool, #5BA3D0); }
+#chatView.mode-fix .header-mode { color: var(--cp-danger, #FF6B6B); }
+
+.header-title {
+  font-family: var(--cp-font-display);
+  font-size: clamp(0.6875rem, 1.2vw, 0.8125rem);
+  color: var(--cp-off-white);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: 0.03em;
+  line-height: 1.2;
+}
+
+.counter-pill {
+  padding: 5px 10px;
+  background: transparent;
+  color: var(--cp-orange);
+  border: var(--cp-border) solid var(--cp-orange);
+  border-radius: var(--cp-radius-chip);
+  font-family: var(--cp-font-mono);
+  font-size: 0.9375rem;
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+}
+#chatView.mode-roast .counter-pill {
+  color: var(--cp-cool, #5BA3D0);
+  border-color: var(--cp-cool, #5BA3D0);
+}
+#chatView.mode-fix .counter-pill {
+  color: var(--cp-danger, #FF6B6B);
+  border-color: var(--cp-danger, #FF6B6B);
+}
+
+.header-logo {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding-left: 12px;
+  border-left: 1px dashed rgba(255,145,77,0.4);
+  margin-left: 4px;
+}
+.header-logo-icon {
+  width: 32px;
+  height: 32px;
+  border: var(--cp-border) solid var(--cp-orange);
+  border-radius: var(--cp-radius-chip);
+  overflow: hidden;
+  background: var(--cp-orange);
+}
+.header-logo-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Progress */
+.progress-wrap {
+  display: flex;
+  gap: 4px;
+  padding: 10px clamp(14px, 2.5vw, 22px);
+  flex-shrink: 0;
+  background: var(--cp-navy-deep);
+  border-bottom: var(--cp-border) solid rgba(255,145,77,0.25);
+}
+.progress-step {
+  height: 4px;
+  flex: 1;
+  background: rgba(255,145,77,0.2);
+  border-radius: 0;
+  transition: background 0.3s ease;
+}
+.progress-step.done { background: var(--cp-orange); }
+.progress-step.active {
+  background: var(--cp-orange-soft);
+  animation: stepPulse 1.4s ease infinite;
+}
+@keyframes stepPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+#chatView.mode-roast .progress-step { background: rgba(91,163,208,0.15); border-color: rgba(91,163,208,0.2); }
+#chatView.mode-roast .progress-step.done { background: var(--cp-cool, #5BA3D0); }
+#chatView.mode-roast .progress-step.active { background: #7FB8DB; border-color: var(--cp-cool, #5BA3D0); }
+#chatView.mode-fix .progress-step { background: rgba(255,107,107,0.15); border-color: rgba(255,107,107,0.2); }
+#chatView.mode-fix .progress-step.done { background: var(--cp-danger, #FF6B6B); }
+#chatView.mode-fix .progress-step.active { background: #FF9090; border-color: var(--cp-danger, #FF6B6B); }
+
+/* Chat stream — terminal style, no bubbles */
+#chat {
+  flex: 1;
+  overflow-y: auto;
+  padding: clamp(18px, 2.5vw, 28px) clamp(16px, 3vw, 32px);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  scroll-behavior: smooth;
+  font-family: var(--cp-font-mono);
+}
+#chat::-webkit-scrollbar { width: 6px; }
+#chat::-webkit-scrollbar-track { background: transparent; }
+#chat::-webkit-scrollbar-thumb { background: var(--cp-orange); }
+
+.message { display: block; animation: msgIn 0.2s ease; }
+@keyframes msgIn { from { opacity: 0; } to { opacity: 1; } }
+
+.bubble {
+  max-width: 100%;
+  padding: 0;
+  background: none;
+  border: none;
+  font-family: var(--cp-font-mono);
+  font-size: clamp(1.0625rem, 1.8vw, 1.25rem);
+  line-height: 1.55;
+  letter-spacing: 0.005em;
+  display: block;
+  color: var(--cp-off-white);
+  word-break: break-word;
+}
+
+/* User line: orange with prompt caret */
+.message.user .bubble {
+  color: var(--cp-orange);
+}
+.message.user .bubble::before {
+  content: '> ';
+  color: var(--cp-orange);
+  font-weight: 700;
+}
+
+/* Bot line: off-white, indented slightly, no prefix */
+.message.bot .bubble { color: var(--cp-off-white); }
+#chatView.mode-roast .message.bot .bubble { color: #D8ECF6; }
+#chatView.mode-fix .message.bot .bubble { color: #FFE4E4; }
+
+/* Typewriter cursor — blinking pixel block (auf Chat-Bubble UND Hero-H1) */
+.bubble.typing::after,
+#heroLine.typing::after {
+  content: '▊';
+  display: inline-block;
+  margin-left: 2px;
+  color: var(--cp-orange);
+  animation: cursorBlink 1s steps(2) infinite;
+  font-weight: 700;
+  transform: translateY(-1px);
+}
+#chatView.mode-roast .bubble.typing::after { color: var(--cp-cool, #5BA3D0); }
+#chatView.mode-fix .bubble.typing::after { color: var(--cp-danger, #FF6B6B); }
+@keyframes cursorBlink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* Absatz-Break im Chat-Text — mehr Luft als normaler Zeilenumbruch */
+.bubble br.para { display: block; margin-bottom: 0.7em; }
+
+/* Markdown Headings — orange, unterschieden durch Größe */
+.bubble .md-h1 {
+  display: inline-block;
+  font-family: var(--cp-font-display);
+  font-size: 1.1em;
+  color: var(--cp-orange);
+  letter-spacing: 0.02em;
+  margin: 0.3em 0 0.2em;
+}
+.bubble .md-h2 {
+  display: inline-block;
+  font-family: var(--cp-font-display);
+  font-size: 1em;
+  color: var(--cp-orange);
+  letter-spacing: 0.02em;
+  margin: 0.25em 0 0.15em;
+}
+.bubble .md-h3 {
+  display: inline-block;
+  font-weight: 700;
+  color: var(--cp-orange);
+  margin: 0.2em 0 0.1em;
+}
+#chatView.mode-roast .md-h1,
+#chatView.mode-roast .md-h2,
+#chatView.mode-roast .md-h3 { color: var(--cp-cool, #5BA3D0); }
+#chatView.mode-fix .md-h1,
+#chatView.mode-fix .md-h2,
+#chatView.mode-fix .md-h3 { color: var(--cp-danger, #FF6B6B); }
+
+/* Listen — Bullet (-) und Nummeriert (1.) */
+.bubble .md-li,
+.bubble .md-li-num {
+  display: inline-block;
+  padding-left: 1.2em;
+  position: relative;
+}
+.bubble .md-li::before {
+  content: '›';
+  position: absolute;
+  left: 0.2em;
+  color: var(--cp-orange);
+  font-weight: 700;
+}
+.bubble .md-li-num::before {
+  content: attr(data-n);
+  position: absolute;
+  left: 0;
+  color: var(--cp-orange);
+  font-weight: 700;
+  font-family: var(--cp-font-mono);
+}
+#chatView.mode-roast .md-li::before,
+#chatView.mode-roast .md-li-num::before { color: var(--cp-cool, #5BA3D0); }
+#chatView.mode-fix .md-li::before,
+#chatView.mode-fix .md-li-num::before { color: var(--cp-danger, #FF6B6B); }
+
+.bubble strong { font-weight: 700; color: var(--cp-orange); }
+#chatView.mode-roast .message.bot .bubble strong { color: var(--cp-cool, #5BA3D0); }
+#chatView.mode-fix .message.bot .bubble strong { color: var(--cp-danger, #FF6B6B); }
+.bubble em { font-style: italic; color: #FFCDA8; }
+
+/* Divider between turns — subtle dashed line */
+.message + .message { border-top: 1px dashed rgba(255,145,77,0.12); padding-top: 14px; margin-top: 0; }
+
+/* Export box — terminal mini-card inside bot bubble */
+.export-box {
+  background: var(--cp-navy-deep);
+  border: var(--cp-border) solid var(--cp-orange);
+  border-radius: 2px;
+  padding: 12px 14px;
+  margin-top: 12px;
+}
+#chatView.mode-roast .export-box { border-color: var(--cp-cool, #5BA3D0); }
+#chatView.mode-fix .export-box { border-color: var(--cp-danger, #FF6B6B); }
+.export-box h4 {
+  font-family: var(--cp-font-display);
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--cp-orange);
+  margin-bottom: 12px;
+}
+#chatView.mode-roast .export-box h4 { color: var(--cp-cool, #5BA3D0); }
+#chatView.mode-fix .export-box h4 { color: var(--cp-danger, #FF6B6B); }
+
+.export-btn {
+  background: transparent;
+  border: var(--cp-border) solid var(--cp-orange);
+  color: var(--cp-orange);
+  padding: 9px 14px;
+  border-radius: var(--cp-radius-chip);
+  cursor: pointer;
+  font-family: var(--cp-font-display);
+  font-size: 0.5625rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: background var(--cp-dur) var(--cp-ease), color var(--cp-dur) var(--cp-ease);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: 6px;
+}
+.export-btn:hover { background: var(--cp-orange); color: var(--cp-black); }
+.export-btn.primary {
+  background: var(--cp-orange);
+  color: var(--cp-black);
+  border-color: var(--cp-black);
+  box-shadow: var(--px) var(--px) 0 var(--cp-black);
+}
+.export-btn.primary:hover { background: var(--cp-orange-soft); }
+#chatView.mode-roast .export-btn {
+  border-color: var(--cp-cool, #5BA3D0);
+  color: var(--cp-cool, #5BA3D0);
+}
+#chatView.mode-roast .export-btn:hover { background: var(--cp-cool, #5BA3D0); color: var(--cp-off-white); }
+#chatView.mode-roast .export-btn.primary {
+  background: var(--cp-cool, #5BA3D0);
+  color: var(--cp-off-white);
+  border-color: var(--cp-black);
+}
+#chatView.mode-fix .export-btn {
+  border-color: var(--cp-danger, #FF6B6B);
+  color: var(--cp-danger, #FF6B6B);
+}
+#chatView.mode-fix .export-btn:hover { background: var(--cp-danger, #FF6B6B); color: var(--cp-off-white); }
+#chatView.mode-fix .export-btn.primary {
+  background: var(--cp-danger, #FF6B6B);
+  color: var(--cp-off-white);
+  border-color: var(--cp-black);
+}
+
+/* Typing */
+.typing-wrap { display: flex; align-items: flex-start; gap: 10px; }
+.typing-bubble {
+  background: transparent;
+  border: none;
+  padding: 6px 0;
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+.tdot {
+  width: 8px; height: 8px;
+  background: var(--cp-orange);
+  border-radius: 1px;
+  opacity: 0.4;
+  animation: tdot 1.3s ease infinite;
+}
+.tdot:nth-child(2) { animation-delay: 0.2s; }
+.tdot:nth-child(3) { animation-delay: 0.4s; }
+#chatView.mode-roast .tdot { background: var(--cp-cool, #5BA3D0); }
+#chatView.mode-fix .tdot { background: var(--cp-danger, #FF6B6B); }
+@keyframes tdot {
+  0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+  40% { transform: translateY(-5px); opacity: 1; }
+}
+
+/* Footer input */
+footer {
+  padding: 14px clamp(14px, 2.5vw, 22px) 16px;
+  background: var(--cp-navy-deep);
+  border-top: var(--cp-border-chunky) solid var(--cp-orange);
+  flex-shrink: 0;
+  box-shadow: 0 calc(var(--px) * -1) 0 var(--cp-orange-deep);
+}
+#chatView.mode-roast footer {
+  border-top-color: var(--cp-cool, #5BA3D0);
+  box-shadow: 0 calc(var(--px) * -1) 0 var(--cp-cool-deep, #3D7DA3);
+}
+#chatView.mode-fix footer {
+  border-top-color: var(--cp-danger, #FF6B6B);
+  box-shadow: 0 calc(var(--px) * -1) 0 var(--cp-danger-deep, #C43838);
+}
+.input-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+}
+textarea#input {
+  flex: 1;
+  background: var(--cp-off-white);
+  border: var(--cp-border) solid var(--cp-black);
+  border-radius: var(--cp-radius-chip);
+  color: var(--cp-black);
+  font-family: var(--cp-font-mono);
+  font-size: 1.0625rem;
+  padding: 12px 14px;
+  resize: none;
+  min-height: 48px;
+  max-height: 140px;
+  line-height: 1.5;
+  outline: none;
+  box-shadow: var(--px) var(--px) 0 var(--cp-orange-deep);
+  transition: box-shadow var(--cp-dur) var(--cp-ease);
+}
+textarea#input:focus { box-shadow: var(--cp-shadow-glow); }
+textarea#input::placeholder { color: #9AA3AC; }
+
+#sendBtn {
+  width: 48px;
+  height: 48px;
+  background: var(--cp-orange);
+  border: var(--cp-border) solid var(--cp-black);
+  border-radius: var(--cp-radius-chip);
+  cursor: pointer;
+  color: var(--cp-black);
+  font-size: 20px;
+  font-family: var(--cp-font-display);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--cp-shadow-pixel);
+  transition: transform var(--cp-dur) var(--cp-ease), box-shadow var(--cp-dur) var(--cp-ease), background var(--cp-dur) var(--cp-ease);
+  flex-shrink: 0;
+}
+#sendBtn:hover {
+  background: var(--cp-orange-soft);
+  transform: translate(-1px, -1px);
+  box-shadow: var(--cp-shadow-pixel-lg);
+}
+#sendBtn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 0 0 0 var(--cp-black);
+}
+#sendBtn:disabled {
+  background: #9AA3AC;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+#chatView.mode-roast #sendBtn { background: var(--cp-cool, #5BA3D0); color: var(--cp-off-white); }
+#chatView.mode-roast #sendBtn:hover { background: #7FB8DB; }
+#chatView.mode-fix #sendBtn { background: var(--cp-danger, #FF6B6B); color: var(--cp-off-white); }
+#chatView.mode-fix #sendBtn:hover { background: #FF9090; }
+
+.hint {
+  font-family: var(--cp-font-mono);
+  font-size: 0.875rem;
+  color: #9AA3AC;
+  margin-top: 8px;
+  text-align: center;
+  letter-spacing: 0.02em;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════════════════════════════════ */
+@media (max-width: 860px) {
+  .mode-grid { grid-template-columns: 1fr; gap: 16px; }
+  .mode-card { min-height: auto; }
+}
+@media (max-width: 560px) {
+  .chat-header { gap: 8px; }
+  .back-btn { padding: 0 10px; font-size: 0.5rem; }
+  .counter-pill { font-size: 0.8125rem; padding: 5px 10px; }
+  .header-logo { padding-left: 8px; margin-left: 0; }
+  .header-logo-icon { width: 28px; height: 28px; }
+  .bubble { max-width: 88%; font-size: 0.875rem; }
+  /* Mode-Tag ausblenden — Platz reicht nicht, headerTitle trägt die Info */
+  .header-mode { display: none; }
+  .header-title {
+    white-space: normal;
+    word-break: break-word; /* verhindert horizontales Clipping bei langen Wörtern */
+    text-overflow: unset;
+    font-size: 0.75rem;
+  }
+  /* Logo-Icon kleiner auf Mobile — aber bleibt sichtbar (Favicon da) */
+  .header-logo { padding-left: 6px; }
+  .header-logo-icon { width: 24px; height: 24px; }
+  /* Counter kürzer, damit Title-Raum frei wird */
+  .counter-pill { font-size: 0.6875rem; padding: 4px 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mode-card, #sendBtn, .back-btn, .export-btn { transition: none; }
+  .mode-card:hover, #sendBtn:hover { transform: none; }
+  .progress-step.active, .tdot { animation: none; }
+  .message { animation: none; }
+}
+</style>
+</head>
+<body class="cp-root">
+
+<!-- Boot-Fallback-Banner: wird per JS nach erfolgreichem Script-Load versteckt.
+     Bleibt sichtbar falls ein Parse-/Runtime-Error das Script killt. -->
+<div id="bootFailBanner" style="display:none;position:fixed;inset:0;z-index:99999;background:#0F141A;color:#F8F8F8;font-family:ui-monospace,monospace;padding:40px 24px;align-items:center;justify-content:center;text-align:center;flex-direction:column;gap:16px;">
+  <div style="font-size:18px;color:#FF914D;">⚠️ Marketing Co-Pilot konnte nicht starten</div>
+  <div style="font-size:14px;color:#D8DDE2;max-width:420px;line-height:1.5;">Die App hat sich beim Laden aufgehängt. Lade die Seite neu (Cmd+R / F5). Wenn das Problem bleibt, checke die Browser-Konsole oder melde dich bei Constantin.</div>
+  <button onclick="location.reload()" style="margin-top:8px;padding:10px 20px;background:#FF914D;color:#0F141A;border:2px solid #1F1F1F;border-radius:4px;font-family:inherit;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;box-shadow:2px 2px 0 #1F1F1F;">▶ Neu laden</button>
+</div>
+<script>
+  // Fail-safe: zeige Banner wenn Script-Parse oder Runtime-Error auftritt
+  window.addEventListener('error', function(e) {
+    const b = document.getElementById('bootFailBanner');
+    if (b) b.style.display = 'flex';
+    console.error('[boot] Script error:', e.message, e.filename, e.lineno);
+  });
+  // Nach 3s: wenn kritische Funktionen nicht definiert sind, Banner zeigen
+  setTimeout(function() {
+    if (typeof openMode !== 'function' || typeof send !== 'function') {
+      const b = document.getElementById('bootFailBanner');
+      if (b) b.style.display = 'flex';
+      console.error('[boot] Critical functions missing after 3s — script likely broken');
+    }
+  }, 3000);
+</script>
+
+<!-- ═══════ SELECTOR ═══════ -->
+<div id="selectorView">
+  <div class="select-header">
+    <div class="select-logo">
+      <div class="cp-monitor" role="img" aria-label="CO-PILOT">
+        <div class="cp-monitor__icon-row">
+          <div class="cp-monitor__icon" aria-hidden="true">
+            <svg viewBox="0 0 12 12"><polygon points="3,2 3,10 10,6" fill="currentColor"/></svg>
+          </div>
+        </div>
+        <div class="cp-monitor__label">CO-PILOT</div>
+      </div>
+    </div>
+    <h1 id="heroLine">Moin.</h1>
+    <p>Drei Wege. Such dir den aus, der gerade passt — du kannst jederzeit wechseln.</p>
+    <button class="logout-btn" id="accountBtn">Ausloggen</button>
+  </div>
+
+  <div class="mode-grid">
+    <div class="mode-card fix" role="button" tabindex="0" aria-label="Modus 1: Fix starten" onclick="openMode('quick')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openMode('quick');}">
+      <div class="mode-icon" aria-hidden="true">⚡</div>
+      <div class="mode-tag">Modus 1</div>
+      <div class="mode-title">Fix</div>
+      <div class="mode-desc">Dein Problem, in 5 Minuten sortiert. Kurze Triage, dann sofort konkrete Empfehlung — keine Schleife.</div>
+      <div class="mode-meta">&gt; 3–5 Fragen · ~5 min</div>
+      <div id="resume-quick"></div>
+    </div>
+
+    <div class="mode-card" role="button" tabindex="0" aria-label="Modus 2: Build starten" onclick="openMode('holistic')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openMode('holistic');}">
+      <div class="mode-icon" aria-hidden="true">🧭</div>
+      <div class="mode-tag">Modus 2</div>
+      <div class="mode-title">Build</div>
+      <div class="mode-desc">30 goldene Fragen. Vollständige Diagnose über alle Marketing-Bereiche — am Ende steht dein 90-Tage-Plan.</div>
+      <div class="mode-meta">&gt; ~30 Fragen · ~30 min</div>
+      <div id="resume-holistic"></div>
+    </div>
+
+    <div class="mode-card roast" role="button" tabindex="0" aria-label="Modus 3: Test starten" onclick="openMode('roast')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openMode('roast');}">
+      <div class="mode-icon" aria-hidden="true">🔥</div>
+      <div class="mode-tag">Modus 3</div>
+      <div class="mode-title">Test</div>
+      <div class="mode-desc">Kein Lob. Nur Löcher. Beschreib deine Strategie — und bekomm den Schwachpunkt scharf benannt.</div>
+      <div class="mode-meta">&gt; 5–10 Fragen · ein Urteil</div>
+      <div id="resume-roast"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ CHAT ═══════ -->
+<div id="chatView">
+  <div class="chat-header">
+    <button class="back-btn" onclick="goBack()" aria-label="Zurück zur Modus-Auswahl">← MODUS</button>
+    <div class="header-info">
+      <div class="header-mode" id="headerMode">Modus</div>
+      <div class="header-title" id="headerTitle">—</div>
+    </div>
+    <div class="counter-pill" id="counterPill" style="display:none;"></div>
+    <div class="header-logo">
+      <div class="header-logo-icon"><img src="./Favicon.png" alt="CP"></div>
+    </div>
+  </div>
+
+  <div class="progress-wrap" id="progressWrap" style="display:none;"></div>
+
+  <div id="chat"></div>
+
+  <footer>
+    <div class="input-row">
+      <textarea id="input" placeholder="> schreib drauf los …" rows="1" aria-label="Deine Nachricht"></textarea>
+      <button id="sendBtn" onclick="send()" aria-label="Nachricht senden">▶</button>
+    </div>
+    <div class="hint">Enter senden · Shift+Enter neue Zeile</div>
+  </footer>
+</div>
+
+<script>
+// ─── Standalone-Modus erkennen ───────────────────────────────────────────────
+const IS_STANDALONE = location.protocol === 'file:';
+const API_KEY_STORE = 'ma_anthropic_key';
+
+// Unified localStorage write — silent-fails (Private-Mode/Quota) ohne Throw,
+// loggt damit Debug sichtbar ist. Gibt true/false zurück für Call-Sites die reagieren wollen.
+function safeSetItem(key, value) {
+  try { localStorage.setItem(key, value); return true; }
+  catch (e) { console.warn('[storage] write failed for ' + key + ':', e?.message || e); return false; }
+}
+function safeGetItem(key) {
+  try { return localStorage.getItem(key); }
+  catch { return null; }
+}
+function safeRemoveItem(key) {
+  try { localStorage.removeItem(key); } catch {}
+}
+
+function getApiKey() { return safeGetItem(API_KEY_STORE) || ''; }
+function setApiKey(k) { return safeSetItem(API_KEY_STORE, k); }
+function clearApiKey() { safeRemoveItem(API_KEY_STORE); }
+
+function maybeStartOnboarding() {
+  // Wenn noch kein Profil gespeichert — First-Visit → Onboarding starten
+  if (!localStorage.getItem('ma_profile_v1')) {
+    // openMode ist u.U. noch nicht definiert wenn Script oben läuft — daher defer
+    setTimeout(() => { if (typeof openMode === 'function') openMode('onboarding'); }, 50);
+  } else {
+    // Profil da → Hero-Line personalisiert animieren
+    setTimeout(() => { if (typeof renderHeroLine === 'function') renderHeroLine(); }, 150);
+  }
+}
+
+// ─── HERO LINE (personalisiert, typewriter-animiert) ────────────────────────
+const HERO_GENERIC = [
+  'Wie war die Woche?',
+  'Moin. Schön dass du wieder da bist.',
+];
+const HERO_PRINCIPLES = [
+  'Emotionale Verbindungen kommen vor dem Verkauf.',
+  'Ein gutes Profil zieht mehr an und stößt die Falschen ab.',
+  'Branding ist Vertrauen über Zeit durch konsistentes Verhalten.',
+  'Menschen kaufen von Menschen.',
+  'Wer sich zeigt wie er ist, zieht die richtigen an.',
+  'In diesem Leben gibt es keine Abkürzungen.',
+];
+
+// Zieht den Kern-Topic aus dem Angebot-Feld (z.B. "1:1 Personal Branding für Interim-Manager" → "Personal Branding")
+function heroShortTopic(angebot) {
+  if (!angebot) return '';
+  let cleaned = angebot.replace(/^[\d:\-\s]+/, '').trim();
+  const idx = cleaned.search(/\b(für|von|bei|mit|im|in|als)\b/i);
+  if (idx > 0) cleaned = cleaned.substring(0, idx).trim();
+  const words = cleaned.split(/\s+/).slice(0, 3).join(' ');
+  if (words.length < 3 || words.length > 40) return '';
+  return words;
+}
+
+// Dativ-Plural für Zielgruppe (best-effort — skipt wenn unsicher)
+function heroDativPlural(noun) {
+  if (!noun) return null;
+  if (/(er|ner|iker|ator|isch)$/i.test(noun)) return noun + 'n';
+  if (/in$/i.test(noun)) return noun + 'nen';
+  if (/e?s$/i.test(noun)) return noun; // englische Plurale stehen
+  return null;
+}
+
+function heroExtractZielgruppe(angebot) {
+  const m = angebot.match(/für\s+([A-ZÄÖÜ][\wäöüß\-]+)/);
+  return m ? m[1] : null;
+}
+
+function buildHeroLines(profile) {
+  if (!profile) return [...HERO_GENERIC, ...HERO_PRINCIPLES];
+  const angebot = (profile.match(/Angebot:\s*(.+)/i)?.[1] || '').trim();
+  const pain = (profile.match(/Aktueller Pain:\s*(.+)/i)?.[1] || '').toLowerCase();
+  const profileLines = [];
+
+  const topic = heroShortTopic(angebot);
+  if (topic) profileLines.push(`Wie läuft's gerade mit deinem ${topic}?`);
+
+  const zgDativ = heroDativPlural(heroExtractZielgruppe(angebot));
+  if (zgDativ) profileLines.push(`Wie läuft's mit den ${zgDativ}?`);
+
+  if (pain.includes('digitale produkt')) profileLines.push(`Wie läuft's mit den digitalen Produkten?`);
+  if (pain.includes('sichtbarkeit'))     profileLines.push(`Wie läuft's mit deiner Sichtbarkeit?`);
+  if (pain.includes('positionier'))      profileLines.push(`Wie läuft's mit deiner Positionierung?`);
+
+  return [...profileLines, ...HERO_GENERIC, ...HERO_PRINCIPLES];
+}
+
+const HERO_LAST_KEY = 'ma_hero_last_v1';
+function pickHeroLine() {
+  const lines = buildHeroLines(getProfile());
+  if (!lines.length) return 'Moin.';
+  let last = null;
+  try { last = sessionStorage.getItem(HERO_LAST_KEY); } catch {}
+  const pool = lines.filter(l => l !== last);
+  const final = (pool.length ? pool : lines)[Math.floor(Math.random() * (pool.length || lines.length))];
+  try { sessionStorage.setItem(HERO_LAST_KEY, final); } catch {}
+  return final;
+}
+
+async function renderHeroLine() {
+  const el = document.getElementById('heroLine');
+  if (!el) return;
+  const line = pickHeroLine();
+  el.textContent = '';
+  try { await typewriter(el, line); } catch(e) { el.textContent = line; }
+}
+
+if (IS_STANDALONE) {
+  if (!getApiKey()) {
+    document.addEventListener('DOMContentLoaded', showApiKeySetup);
+  } else {
+    document.addEventListener('DOMContentLoaded', maybeStartOnboarding);
+  }
+} else {
+  (async () => {
+    try {
+      const res = await fetch('/api/auth');
+      if (!res.ok) { window.location.href = '/login'; return; }
+      maybeStartOnboarding();
+    } catch { window.location.href = '/login'; }
+  })();
+}
+
+function showApiKeySetup() {
+  const existing = document.getElementById('apiKeyModal');
+  if (existing) existing.remove();
+  const modal = document.createElement('div');
+  modal.id = 'apiKeyModal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(15,20,26,0.85);display:flex;align-items:center;justify-content:center;padding:20px;font-family:var(--cp-font-ui);';
+  modal.innerHTML = `
+    <div style="background:var(--cp-navy-deep);border:3px solid var(--cp-orange);border-radius:8px;padding:32px 28px;max-width:460px;width:100%;box-shadow:3px 3px 0 #1F1F1F, 6px 6px 0 #E8731F;color:var(--cp-off-white);">
+      <div style="font-family:var(--cp-font-display);font-size:14px;color:var(--cp-orange);margin-bottom:10px;letter-spacing:0.04em;">&gt; LOKALER TEST-MODUS</div>
+      <div style="font-family:var(--cp-font-ui);font-size:14px;color:#D8DDE2;line-height:1.55;margin-bottom:22px;">Du öffnest die Datei direkt im Browser. Damit der Chat funktioniert, brauche ich einmal deinen <strong style="color:var(--cp-orange);">Anthropic API-Key</strong>. Er wird nur lokal gespeichert.</div>
+      <label style="display:block;font-family:var(--cp-font-display);font-size:10px;color:var(--cp-orange);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;">&gt; API-KEY</label>
+      <input id="apiKeyInput" type="password" placeholder="sk-ant-..." autofocus style="width:100%;background:var(--cp-off-white);border:2px solid var(--cp-black);border-radius:4px;padding:13px 14px;font-family:var(--cp-font-mono);font-size:16px;color:var(--cp-black);outline:none;box-shadow:2px 2px 0 var(--cp-orange-deep);margin-bottom:14px;"/>
+      <div id="apiKeyError" style="display:none;font-family:var(--cp-font-mono);font-size:14px;color:#FF6B6B;margin-bottom:12px;">! Fehler</div>
+      <button onclick="saveApiKeyFromInput()" style="width:100%;background:var(--cp-orange);color:var(--cp-black);border:2px solid var(--cp-black);border-radius:4px;padding:13px;font-family:var(--cp-font-display);font-size:12px;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;box-shadow:2px 2px 0 #1F1F1F, 4px 4px 0 #E8731F;">▶ LOS GEHT'S</button>
+      <div style="margin-top:16px;font-family:var(--cp-font-mono);font-size:14px;color:#9AA3AC;text-align:center;line-height:1.5;">Key holen: <a href="https://console.anthropic.com/settings/keys" target="_blank" style="color:var(--cp-orange);text-decoration:none;">console.anthropic.com</a></div>
+    </div>`;
+  document.body.appendChild(modal);
+  const inp = document.getElementById('apiKeyInput');
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') saveApiKeyFromInput(); });
+}
+function saveApiKeyFromInput() {
+  const inp = document.getElementById('apiKeyInput');
+  const err = document.getElementById('apiKeyError');
+  const val = inp.value.trim();
+  if (!val.startsWith('sk-ant-')) {
+    err.textContent = '! Das sieht nicht nach einem gültigen Anthropic-Key aus (muss mit sk-ant- starten).';
+    err.style.display = 'block';
+    return;
+  }
+  setApiKey(val);
+  const modal = document.getElementById('apiKeyModal');
+  if (modal) modal.remove();
+}
+
+// ─── MODES ───────────────────────────────────────────────────────────────────
+const MODE_META = {
+  onboarding: {
+    label: 'Setup',
+    title: 'Kennenlern-Check',
+    tag: 'INIT · CHECK-IN',
+    maxQuestions: 8,
+    showProgress: true,
+    exportLabel: null,
+    exportFileName: null,
+  },
+  quick: {
+    label: 'Modus 1',
+    title: 'Fix',
+    tag: 'MODUS 1 · FIX',
+    maxQuestions: 5,
+    showProgress: true,
+    exportLabel: 'Als Notiz sichern (Markdown)',
+    exportFileName: 'fix-notiz.md',
+  },
+  holistic: {
+    label: 'Modus 2',
+    title: 'Build',
+    tag: 'MODUS 2 · BUILD',
+    maxQuestions: 30,
+    showProgress: true,
+    exportLabel: '90-Tage-Plan exportieren (Markdown)',
+    exportFileName: 'marketing-90-tage-plan.md',
+  },
+  roast: {
+    label: 'Modus 3',
+    title: 'Test',
+    tag: 'MODUS 3 · TEST',
+    maxQuestions: 10,
+    minQuestions: 5,
+    showProgress: true,
+    exportLabel: 'Weak Spot merken (Markdown)',
+    exportFileName: 'test-weak-spot.md',
+  },
+};
+
+// ─── USER PROFILE (aus Onboarding) ───────────────────────────────────────────
+const PROFILE_KEY = 'ma_profile_v1';
+function getProfile() { return safeGetItem(PROFILE_KEY) || ''; }
+function setProfile(p) { return safeSetItem(PROFILE_KEY, p); }
+function clearProfile() { safeRemoveItem(PROFILE_KEY); }
+
+const PROMPT_ONBOARDING = `Du führst den **einmaligen Kennenlern-Check** für Constantins Marketing Co-Pilot durch. Ziel: in **genau 8 Fragen** ein vollständiges Profil bauen, damit alle kommenden Sessions sofort mit Kontext starten.
+
+DEIN STIL: Direkt, warm, wie Constantin. Kein Aufwärmen, kein Smalltalk. Eine Frage pro Turn. Kurze Reaktion auf die Antwort (max. 1 Satz), dann direkt die nächste.
+
+DIE 8 FRAGEN (diese Themen MUSSt du abdecken, in dieser Reihenfolge):
+
+1. Branche & Unternehmen — was machst du beruflich, in einem Satz?
+2. Was verkaufst du konkret? (Produkt, Service, Coaching, Software, etc. — lass dir das klar sagen)
+3. Zielgruppe — B2B, B2C, oder beides?
+4. Unternehmensgröße — Solo, kleines Team (<10), größer?
+5. Aktive Marketing-Kanäle — was läuft gerade? (Social, Paid, SEO, Email, Events, nichts — alles okay)
+6. Marketing-Level ehrlich einschätzen: kennst du CAC, CLV, ROAS auswendig? Oder ist das gerade noch zu abstrakt? (Frag genau so direkt.)
+7. Was nervt dich aktuell am meisten an deinem Marketing?
+8. In einem Wort — wie würdest du dein Marketing gerade beschreiben? (z.B. "stagniert", "experimentell", "explodiert", "bauchig")
+
+NACH ANTWORT 8 — liefere **ohne weitere Frage** folgende Ausgabe:
+
+Kurzes Feedback (1–2 Sätze): was du aus dem Check-In mitnimmst.
+
+Dann **exakt** dieses Profil-Block (maschinell geparst — Format streng einhalten):
+
+<<<PROFIL>>>
+Branche: ...
+Unternehmen: ...
+Angebot: ...
+Zielgruppe: B2B | B2C | Beides
+Teamgröße: Solo | Klein (<10) | Mittel (10–30) | Groß (>30)
+Aktive Kanäle: ...
+Marketing-Level: Anfänger | Fortgeschritten | Profi — (kurze Begründung in einem Satz)
+Aktueller Pain: ...
+Self-Tone: ...
+<<<END>>>
+
+**FORMAT-REGEL (sehr wichtig):** Die Marker <<<PROFIL>>> und <<<END>>> stehen **genau so** im Output — in eigener Zeile, **ohne Leerzeichen innen**, ohne Markdown-Fettung, ohne Code-Block. Wenn du das Format verletzt, kann das Frontend das Profil nicht speichern und der User landet in einer Schleife.
+
+Danach ein **einziger** Satz als Übergang — warm aber knapp. Nicht mehr.
+
+Antworte auf Deutsch. Niemals länger als 3 Zeilen pro Turn bis zum Profil-Block. Stell immer genau EINE Frage pro Turn.
+
+Starte jetzt: kurze Begrüßung (max. 1 Satz — "Kurz noch kennenlernen, dann geht's los" oder ähnlich) + direkt Frage 1.`;
+
+// ─── SYSTEM PROMPTS ──────────────────────────────────────────────────────────
+
+const PROMPT_QUICK = `Du bist Constantins Marketing-Assistant — direkt, warm, ohne Aufwärmen. Du klingst wie Constantin: "halt" kommt natürlich, du mischst Deutsch und Englisch wenn es passt, du zeigst Unsicherheit wenn sie da ist. Kein Corporate-Bla, kein Hochglanz-Fazit, keine Motivationssätze. Du denkst in Logikketten — nicht in Aufzählungen.
+
+**KONTEXT-REGEL (Priorität vor allem anderen):** Wenn oberhalb dieses Prompts ein Block "KONTEXT über den Nutzer" steht, ignorierst du die generischen Opener-Beispiele weiter unten ("Moin, was ist gerade dein größtes Marketing-Ding?" etc.). Stattdessen öffnest du spezifisch: kurze Begrüßung + 1-2 Sätze Spiegelung der Situation aus dem Kontext + eine Frage die nur zu diesem Menschen passt. Nie Fragen wiederholen deren Antwort schon im Kontext steht. Das ist das Gegenteil von feinfühlig.
+
+Du hast tiefe Expertise in 13 Marketing-Domänen:
+• Branding & Vertrauen (Positionierung, Personal/Corporate/Employer Branding)
+• ICP & No-Brainer Offer (Wunschkunde, Jobs-to-be-Done, Angebots-Architektur)
+• Sichtbarkeit (TOFU/MOFU/BOFU, Reach × Relevanz × Vertrauen)
+• Paid Media (Meta, Google, LinkedIn, TikTok, Budget-Allokation, ROAS/CPL/CAC)
+• Organic & Content (SEO, Content-Strategie, Plattformen, Repurposing)
+• Kanäle im Überblick (Email/Newsletter, CRM, Influencer, Affiliate, PR, Events, Community)
+• Analytics (KPIs vs. Vanity Metrics, CAC, CLV, ROAS, Tracking, A/B-Testing)
+• Mediengestaltung (DIY/KI/Profi, Nutzungsrechte, Website, Agenturen)
+• B2B-Marketing (Sales Cycles, Buying Committees, LinkedIn ABM, Thought Leadership)
+• B2C-Marketing (Impuls vs. Überlegt, E-Commerce Funnel, CRO, Influencer)
+• Strategie-Synthese (Hebel identifizieren, 90-Tage-Planung)
+• Marketing-Grundlagen (Strategie vs. Taktik, Funnel-Denken)
+• Stresstest (Schwachstellen-Analyse)
+
+DEIN VERHALTEN — Triage in 3–5 Runden, dann SOFORT Wert liefern:
+
+FRAGE 1 (nur ohne Kontext-Block): Direkter Pain-Opener, ein Satz, kein Aufwärmen. **Mit Kontext-Block greift stattdessen die KONTEXT-REGEL oben — dann spezifisch öffnen.**
+
+FRAGE 2: Domäne eingrenzen. Welche der 13 Domänen ist es wirklich? Eine gezielte Nachfrage die das klärt.
+
+FRAGE 3 (optional): Nur wenn du noch unsicher bist — eine Verifikations-Frage. Sonst weiter zur Empfehlung.
+
+STOP-RULE — sehr wichtig:
+Sobald du zu >70% sicher bist welches Problem vorliegt — **SCHLUSS mit Fragen, liefere den Wert**. Lieber zu früh antworten als zu spät. Maximal 5 User-Antworten insgesamt, danach MUSS eine Empfehlung kommen. Aber meistens reichen 2–3.
+
+DEINE EMPFEHLUNG (wenn Stop-Rule greift):
+- Eine kurze Herleitung: "Das was du beschreibst klingt nach..." (Domäne benennen, warum)
+- Dann eine konkrete, spezifische Einschätzung — keine Allgemeinplätze
+- Am Ende: **eine konkrete nächste Aktion** die heute oder morgen umsetzbar ist. Nicht "überleg dir", sondern "mach heute X".
+- **Fettschrift** für Schlüsselbegriffe.
+- Max 150 Wörter pro Turn.
+
+Antworte auf Deutsch. Niemals mit einem Motivationssatz enden — ende mit einem Gedanken der sitzt oder mit der konkreten Aktion.`;
+
+const PROMPT_HOLISTIC = `Du bist Constantins Marketing-Assistant für die **holistische Diagnose**. Du klingst wie Constantin: direkt, warm, "halt" natürlich, English-Einschübe wenn es passt, keine Motivationssprache, keine Aufzählungen — herleiten.
+
+**KONTEXT-REGEL (Priorität vor allem anderen):** Wenn oberhalb dieses Prompts ein Block "KONTEXT über den Nutzer" steht, öffnest du spezifisch — kurze Begrüßung + 1-2 Sätze Spiegelung der Situation + **ein Satz der transparent sagt wie viele Themen durch den Profil-Kontext schon abgedeckt sind** (z.B. "Etwa 4-5 der 30 Themen weiß ich durchs Kennenlernen schon — bleiben ~25 für uns.") + direkt die erste offene Frage. Wenn eine der 30 Fragen durch den Kontext bereits beantwortet ist, überspringst du sie **ohne Bestätigung** (keine Zwischen-Echos wie "Du machst ja X für Y — check.", das nervt bei mehreren Skips). Das gilt für ALLE 30 Fragen, nicht nur die erste. Beispiele was Kontext typisch schon abdeckt: Branche/Angebot/Zielgruppe (Q1-Q3), aktuelle Kanäle (Q4), Pain (nicht nötig ein zweites Mal), Marketing-Level (Q14, Q20, Q21).
+
+Deine Aufgabe: dem Unternehmer **eine vollständige Marketing-Diagnose** geben, basierend auf 30 goldenen Fragen die du nacheinander stellst. Am Ende folgt ein 7-Abschnitts-90-Tage-Plan.
+
+ABLAUF:
+Stelle die Fragen **einzeln, eine pro Turn**. Warte jede Antwort ab bevor die nächste kommt. Kurze Reaktion auf die Antwort ist okay (1 Satz, nicht mehr), dann direkt die nächste Frage.
+
+DIE 30 FRAGEN (mit B2B/B2C-Verzweigung nach Q3):
+
+BEREICH A — Kontext (3 Fragen):
+1. Kurz: Was machst du — und für wen?
+2. Was nervt dich am meisten an deiner aktuellen Marketing-Situation?
+3. Eher B2B, B2C — oder beides?
+
+BEREICH B — Marketing-Status (2):
+4. Was machst du aktuell unter dem Label "Marketing"? (Werbung, Social, SEO, Email, Empfehlungen, was auch immer)
+5. Guck mal auf den Funnel — Awareness, Consideration, Conversion, Retention: wo bist du stark, wo fehlt fast alles?
+
+BEREICH C — Branding (2):
+6. Positionierung in einem Satz — für wen bist du, wofür stehst du?
+7. Was unterscheidet dich wirklich — aus Kundensicht, nicht aus deiner?
+
+BEREICH D — ICP & Offer (3):
+8. Beschreib deinen idealen Kunden konkret — was hält ihn nachts wach?
+9. Welchen "Job" erledigt dein Angebot wirklich — nicht was es kann, sondern was er damit erreichen will?
+10. Hauptangebot + zentrales Versprechen in einem Satz?
+
+BEREICH E — Sichtbarkeit (2):
+11. Sichtbarkeit 1–10 ehrlich?
+12. TOFU, MOFU, BOFU — welche Funnel-Stufe ist am schwächsten?
+
+BEREICH F — Paid (3):
+13. Schaltest du Paid Ads — wo, wie viel Budget ungefähr?
+14. ROAS / CPL / CAC — weißt du irgendeins davon?
+15. Was hat funktioniert, was war Geldverbrennen?
+
+BEREICH G — Organic (2):
+16. Welche organischen Plattformen — und wie oft?
+17. Wenn du nur eine Plattform wirklich gut bespielen könntest — welche und warum?
+
+BEREICH H — Kanäle (2):
+18. Email-Liste oder Newsletter — wie groß, wie aktiv?
+19. Fokus: Bestandskunden halten oder Neukundengewinnung?
+
+BEREICH I — Analytics (3):
+20. Kennst du deinen CAC (Customer Acquisition Cost)?
+21. Kennst du deinen CLV (Customer Lifetime Value)?
+22. Welche Entscheidung triffst du gerade nach Bauchgefühl, weil Daten fehlen?
+
+BEREICH J — Medien (2):
+23. Content-Produktion: selbst, KI oder professionell?
+24. Website: selbst gebaut, Baukasten oder professionell entwickelt?
+
+BEREICH K — B2B (**nur wenn Q3 = B2B oder Beides, sonst ÜBERSPRINGEN**):
+25. Sales Cycle wie lang — von erstem Kontakt bis Abschluss? Einzelentscheider oder Buying Committee?
+26. LinkedIn aktiv für Business-Development — wie genau?
+
+BEREICH L — B2C (**nur wenn Q3 = B2C oder Beides, sonst ÜBERSPRINGEN**):
+27. Preissegment des Hauptangebots? (unter 100€, 100–500€, drüber)
+28. Wichtigste Conversion Rate (Landing Page, Produktseite, Checkout) — kennst du sie?
+
+BEREICH M — Synthese (2):
+29. Was ist der **eine Engpass**, der gerade alles andere blockiert?
+30. Wenn du heute nur eine einzige Sache ändern könntest — welche?
+
+**VERZWEIGUNGS-REGEL**: Nach Q3 merkst du dir die B2B/B2C/Beides-Antwort. Bei reinem B2B überspringst du Q27/28, bei reinem B2C Q25/26. Bei Beides stellst du alle. Zähl dann korrekt weiter — das Endziel ist Q29/30.
+
+FINAL NACH Q30 — Der 90-Tage-Marketing-Plan:
+
+Wenn Q30 beantwortet ist, liefere **ohne weitere Frage** den kompletten Plan. Struktur:
+
+# Dein persönlicher 90-Tage-Marketing-Plan
+
+## 1. Ausgangssituation
+(Kurz: wer bist du, was bietest du, wo stehst du wirklich. Stärken und Lücken klar benennen. 3–5 Sätze.)
+
+## 2. Die 3 echten Hebel
+(Nicht was theoretisch möglich wäre — was für genau diese Person zuerst Sinn macht. Mit Herleitung warum.)
+
+## 3. 90-Tage-Plan
+**Monat 1 — Fundament**: Was muss zuerst sitzen?
+**Monat 2 — Aktivierung**: Welche 1–2 Kanäle, wie?
+**Monat 3 — Optimieren**: Was funktioniert? Was stoppen?
+
+## 4. 3 Fokus-Kanäle
+Warum genau diese, warum in dieser Reihenfolge.
+
+## 5. KPIs
+3–5 Kennzahlen die wirklich zählen. Keine Vanity Metrics.
+
+## 6. Budget-Rahmen
+Wie aufteilen — Paid, Organic, Testing. Konkret.
+
+## 7. Diese Woche
+3 Dinge die sofort umsetzbar sind. Nichts Abstraktes.
+
+Keine generischen Floskeln. Alles aus dem was dieser Mensch dir gesagt hat. **Fettschrift** für Schlüsselempfehlungen. Ende mit einem Gedanken der sitzt — kein Motivationssatz. Antworte auf Deutsch.`;
+
+const PROMPT_ROAST = `Du bist ein knallharter Marketing-Kritiker — der Advocatus Diaboli. Deine einzige Aufgabe: die Marketing-Strategie des Unternehmers auseinandernehmen und testen ob wirklich Substanz dahinter ist.
+
+**KONTEXT-REGEL (Priorität vor allem anderen):** Wenn oberhalb dieses Prompts ein Block "KONTEXT über den Nutzer" steht, öffnest du NICHT mit "Beschreib mir deine Marketing-Strategie" — du kennst sie schon. Stattdessen: ein Satz Begrüßung, dann spiegelst du in 1-2 Sätzen die schwächste Stelle die du aus dem Kontext schon erkennst, und fragst gezielt dort nach. Das zeigt dem User sofort dass du nicht bei Null anfängst. Niemals Fragen stellen deren Antwort schon im Kontext steht.
+
+Du bist NICHT freundlich. Du bist fair — aber schonungslos. Du redest wie jemand der schon hundert solcher Strategien gesehen hat und genau weiß wo die meisten scheitern.
+
+DEIN ANSATZ:
+- Hör dir die Strategie an
+- Frag sofort nach dem schwächsten Punkt den du erkennst
+- Bohre nach — wenn die Antwort vage ist, sag das direkt
+- Teste ob wirklich durchgedacht ist was behauptet wird
+- Decke auf wo Wunschdenken statt Substanz steckt
+- Keine Komplimente außer wenn wirklich verdient
+- Stelle maximal EINE Frage pro Turn — aber die sitzt
+
+STIL:
+- Direkt, klar, keine Weichspüler
+- "Puh." wenn etwas wirklich schwach ist
+- "Guck mal" wenn du einen Widerspruch aufzeigst
+- Kurze Sätze. Keine Romane.
+- Wenn etwas wirklich gut ist: sag es — aber kurz, dann weiter zum nächsten Loch
+- Antworte auf Deutsch
+- Misch Englisch natürlich ein wenn es passt
+
+ADAPTIVE STOP-RULE (sehr wichtig):
+Stelle **mindestens 5, maximal 10 Fragen**. Nach jeder User-Antwort fragst du dich intern: Habe ich jetzt wirklich genug Substanz, um **einen konkreten Weak Spot** scharf und fundiert zu benennen?
+
+- Wenn ja und Frage 5 ist erreicht — **SCHLUSS mit Fragen, liefere das Urteil**.
+- Wenn nein und Frage 5 ist erreicht — bohr weiter, aber niemals über Frage 10 hinaus.
+- Bei Frage 10 MUSS das Urteil kommen, egal was.
+- Vor Frage 5 niemals das Urteil — da hast du noch zu wenig.
+
+HARTER TEST — den du ständig im Hinterkopf hast:
+**3-Sekunden-Test**. Wenn jemand den Pitch / die Website / den Slogan des Users 3 Sekunden lang anguckt: weiß er danach **was** es ist und **für wen**? Wenn nein — das ist fast immer ein Weak Spot. Generische Slogans ohne konkrete Transformation sind eine Vollkatastrophe. Triggere sofort darauf wenn du "authentisch", "Qualität", "ganzheitlich", "KI-powered" ohne Substanz hörst.
+
+DEIN URTEIL (wenn Stop-Rule greift):
+**Genau EINEN** konkreten Weak Spot, scharf benannt. Nicht drei, nicht eine Liste — einer. Dazu eine Hypothese **warum** das ein Blind Spot ist (nicht nur dass). Kein Pitch, kein Trostpflaster, kein "aber sonst läuft's gut". Ende mit einem Gedanken der sitzt.
+
+Starte die Session (**nur ohne Kontext-Block**): grüße kurz — hart aber fair, ein Satz — und bitte den Nutzer seine Marketing-Strategie in ein paar Sätzen zu beschreiben. **Mit Kontext-Block greift stattdessen die KONTEXT-REGEL oben — dann direkt die schwächste Stelle spiegeln und dort nachbohren.**`;
+
+function buildSystemPrompt(mode, answerCount, profile = null) {
+  let prompt;
+  if (mode === 'onboarding') prompt = PROMPT_ONBOARDING;
+  else if (mode === 'quick') prompt = PROMPT_QUICK;
+  else if (mode === 'holistic') prompt = PROMPT_HOLISTIC;
+  else prompt = PROMPT_ROAST;
+
+  if (mode === 'roast' && answerCount >= 10) {
+    prompt += `\n\nSYSTEM-NOTIZ: Der Nutzer hat jetzt **10 Fragen beantwortet**. Das ist der Hard-Cap. Du MUSST jetzt dein Urteil liefern — einen konkreten Weak Spot, keine weitere Frage mehr, egal was.`;
+  }
+  if (mode === 'quick' && answerCount >= 5) {
+    prompt += `\n\nSYSTEM-NOTIZ: Der Nutzer hat jetzt **5 Fragen beantwortet**. Das ist der Hard-Cap. Du MUSST jetzt die Empfehlung liefern — Domäne + konkrete Einschätzung + eine klare nächste Aktion. Keine weitere Frage.`;
+  }
+  if (mode === 'onboarding' && answerCount >= 8) {
+    prompt += `\n\nSYSTEM-NOTIZ: Der Nutzer hat jetzt **8 Fragen beantwortet**. Du MUSST jetzt den <<<PROFIL>>>-Block produzieren — keine weitere Frage, egal was. Format exakt einhalten.`;
+  }
+
+  // Profil aus Onboarding in alle späteren Modi injizieren
+  if (mode !== 'onboarding') {
+    const p = profile !== null ? profile : getProfile();
+    if (p && p.trim()) {
+      prompt = `KONTEXT über den Nutzer (aus dem Kennenlern-Check):
+${p}
+
+---
+
+**ABSOLUT WICHTIG — so öffnest du diese Session:**
+
+Du kennst diesen Menschen bereits durch den Kontext oben. Deine ERSTE Nachricht MUSS das zeigen. Generische Opener wie "Moin, was ist gerade dein größtes Marketing-Ding?" oder "Was läuft nicht rund?" oder "Beschreib mir deine Marketing-Strategie" sind **verboten** wenn Kontext da ist — das ist faul und zeigt dem User dass du seinen Kontext ignorierst.
+
+Stattdessen exakt das in deiner ersten Nachricht:
+
+1. **Kurze warme Begrüßung** ("Moin.")
+2. **Spiegel in 1–2 Sätzen was du über seine Situation schon weißt** — die 2–3 relevantesten Punkte für die jetzige Session. Zum Beispiel: "Du bist solo mit Personal Branding für Interim-Manager unterwegs, läuft über Referenzen, und du willst skalierbare digitale Produkte neben der 1:1-Beratung aufbauen — bisher ohne Marketing-Budget."
+3. **Stell dann eine spezifische erste Frage** die genau auf diesen Kontext zugeschnitten ist. Nie "Was ist dein größtes Problem?" wenn du es aus dem Kontext schon eingrenzen kannst — besser: "Was hält dich gerade am meisten davon ab, die digitalen Produkte wirklich in den Markt zu kriegen — Sichtbarkeit, Positionierung dafür, oder etwas ganz anderes?"
+
+**Drei harte Regeln** ab Nachricht 1:
+- Niemals Fragen stellen deren Antwort schon im Kontext steht (Branche, Angebot, Zielgruppe, B2B/B2C, Sichtbarkeits-Stand, etc.)
+- Niemals generisch eröffnen wenn Kontext da ist
+- Der User muss in der ersten Zeile schon merken: "Der hat meine Situation wirklich gelesen"
+
+Wenn in dem eigentlichen Modus-Prompt unten generische Opener-Beispiele stehen ("Moin, was ist gerade dein größtes Marketing-Ding?" etc.) — **ignoriere die**. Die gelten nur wenn KEIN Kontext vorhanden ist. Hier ist Kontext da — also öffnest du spezifisch.
+
+---
+
+${prompt}`;
+    }
+  }
+
+  return prompt;
+}
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let currentMode = null;
+let messages = [];
+let userAnswerCount = 0;
+
+// ─── localStorage ────────────────────────────────────────────────────────────
+const STORE_KEY = 'ma_sessions_v1';
+function loadStore() { try { return JSON.parse(safeGetItem(STORE_KEY)) || {}; } catch { return {}; } }
+function saveStore(s) { safeSetItem(STORE_KEY, JSON.stringify(s)); }
+function getSession(mode) { return loadStore()[mode] || null; }
+function saveSession(mode, msgs, count) {
+  const s = loadStore();
+  s[mode] = { msgs, answerCount: count, updatedAt: Date.now() };
+  saveStore(s);
+}
+function clearSession(mode) { const s = loadStore(); delete s[mode]; saveStore(s); }
+
+// ─── Account-Button ──────────────────────────────────────────────────────────
+(function setupAccountBtn() {
+  const btn = document.getElementById('accountBtn');
+  if (!btn) return;
+  if (IS_STANDALONE) {
+    btn.textContent = 'API-Key ändern';
+    btn.onclick = () => { clearApiKey(); showApiKeySetup(); };
+  } else {
+    btn.textContent = 'Ausloggen';
+    btn.onclick = () => { window.location.href = '/api/logout'; };
+  }
+})();
+
+// ─── SELECTOR ────────────────────────────────────────────────────────────────
+function updateResumeLinks() {
+  ['quick', 'holistic', 'roast'].forEach(mode => {
+    const el = document.getElementById('resume-' + mode);
+    if (!el) return;
+    const saved = getSession(mode);
+    el.textContent = '';
+    if (!saved || !saved.msgs || saved.msgs.length <= 1) return;
+    const count = Number(saved.answerCount) || 0;
+    const label = mode === 'holistic'
+      ? `↻ Fortsetzen (Frage ${count + 1}/~30)`
+      : mode === 'quick'
+      ? `↻ Fortsetzen (${count}/5)`
+      : `↻ Fortsetzen (${count}/10)`;
+    const link = document.createElement('div');
+    link.className = 'resume-link';
+    link.textContent = label;
+    link.setAttribute('role', 'button');
+    link.setAttribute('tabindex', '0');
+    link.setAttribute('aria-label', `Session fortsetzen: ${label}`);
+    const resume = e => { e.stopPropagation(); openMode(mode, true); };
+    link.addEventListener('click', resume);
+    link.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); resume(e); }
+    });
+    el.appendChild(link);
+  });
+}
+updateResumeLinks();
+
+// ─── OPEN MODE ───────────────────────────────────────────────────────────────
+function openMode(mode, resume = false) {
+  currentMode = mode;
+  const meta = MODE_META[mode];
+
+  document.getElementById('selectorView').style.display = 'none';
+  const cv = document.getElementById('chatView');
+  cv.style.display = 'flex';
+  cv.className = '';
+  if (mode === 'quick') cv.classList.add('mode-fix');
+  if (mode === 'roast') cv.classList.add('mode-roast');
+  if (mode === 'onboarding') cv.classList.add('mode-onboarding');
+
+  // Back-Button während Onboarding ausblenden — User kann nicht zurück
+  const backBtn = cv.querySelector('.back-btn');
+  if (backBtn) backBtn.style.display = (mode === 'onboarding') ? 'none' : '';
+
+  document.getElementById('headerMode').textContent = meta.tag;
+  document.getElementById('headerTitle').textContent = meta.title;
+  document.getElementById('chat').innerHTML = '';
+  document.getElementById('input').value = '';
+  document.getElementById('input').style.height = 'auto';
+
+  const pw = document.getElementById('progressWrap');
+  pw.innerHTML = '';
+  if (meta.showProgress) {
+    pw.style.display = 'flex';
+    for (let i = 0; i < meta.maxQuestions; i++) {
+      const s = document.createElement('div');
+      s.className = 'progress-step';
+      s.id = 'step' + i;
+      pw.appendChild(s);
+    }
+  } else {
+    pw.style.display = 'none';
+  }
+
+  const saved = resume ? getSession(mode) : null;
+  if (saved && saved.msgs && saved.msgs.length > 1) {
+    messages = saved.msgs;
+    userAnswerCount = saved.answerCount || 0;
+    for (let i = 1; i < messages.length; i++) {
+      const m = messages[i];
+      addMsg(m.role === 'assistant' ? 'bot' : 'user', m.content, true);
+    }
+    updateProgress();
+    updateCounter();
+    // Nach Restore: Export-Box an letzte bot-Nachricht anhängen wenn passend
+    const lastBot = [...messages].reverse().find(m => m.role === 'assistant');
+    if (lastBot && shouldShowExport(lastBot.content)) {
+      const bubbles = document.querySelectorAll('#chat .message.bot .bubble');
+      const lastBubble = bubbles[bubbles.length - 1];
+      if (lastBubble && !lastBubble.querySelector('.export-box')) appendExportBox(lastBubble);
+    }
+  } else {
+    messages = [];
+    userAnswerCount = 0;
+    clearSession(mode);
+    updateCounter();
+    initChat();
+  }
+  // Draft für diesen Mode restoren falls vorhanden
+  restoreDraft(mode);
+}
+
+function goBack() {
+  if (currentMode && messages.length > 1) {
+    saveSession(currentMode, messages, userAnswerCount);
+  }
+  document.getElementById('chatView').style.display = 'none';
+  document.getElementById('selectorView').style.display = 'flex';
+  currentMode = null;
+  messages = [];
+  userAnswerCount = 0;
+  updateResumeLinks();
+  renderHeroLine();
+}
+
+// ─── CHAT MESSAGES ───────────────────────────────────────────────────────────
+let isTyping = false;
+let skipType = false;
+
+function setInputEnabled(enabled) {
+  const inp = document.getElementById('input');
+  const btn = document.getElementById('sendBtn');
+  if (inp) inp.disabled = !enabled;
+  if (btn) btn.disabled = !enabled;
+}
+
+// Typewriter: char-by-char reveal, skippable by clicking the bubble
+// Adaptive speed: kurze Messages tippen natürlich, lange Pläne skalieren runter
+function typewriterSpeedFor(length) {
+  if (length < 200) return 12;   // Onboarding-Frage, kurze Rückfrage
+  if (length < 600) return 8;    // kurze Empfehlung
+  if (length < 1200) return 5;   // mittel
+  return 3;                      // 90-Tage-Plan etc.
+}
+
+async function typewriter(el, fullText, speed) {
+  if (speed === undefined) speed = typewriterSpeedFor(fullText.length);
+  isTyping = true;
+  skipType = false;
+  el.classList.add('typing');
+  el.addEventListener('click', () => { if (isTyping) skipType = true; }, { once: true });
+
+  // strip markdown markers so they don't flash during typing
+  const plain = fullText
+    .replace(/\*\*(.*?)\*\*/g, '$1')
+    .replace(/(?<!\*)\*([^*\n]+?)\*(?!\*)/g, '$1');
+  const esc = plain
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+
+  const chat = document.getElementById('chat');
+  // Grapheme-Split: Emojis & Surrogate-Pairs als eine Einheit — verhindert Flackern
+  const graphemes = typeof Intl !== 'undefined' && Intl.Segmenter
+    ? Array.from(new Intl.Segmenter('de', { granularity: 'grapheme' }).segment(esc), s => s.segment)
+    : Array.from(esc);
+  let acc = '';
+  for (let i = 0; i < graphemes.length; i++) {
+    if (skipType) break;
+    const ch = graphemes[i];
+    acc += ch;
+    el.innerHTML = acc.replace(/\n/g, '<br>');
+    let delay = speed;
+    if (ch === ' ') delay = speed * 0.4;
+    else if (ch === '\n') delay = speed * 3;
+    else if (/[.!?]/.test(ch)) delay = speed * 6;
+    else if (/[,:;]/.test(ch)) delay = speed * 2.5;
+    await new Promise(r => setTimeout(r, delay));
+    if (ch === '\n' || i % 20 === 0) chat.scrollTop = chat.scrollHeight;
+  }
+  el.innerHTML = formatText(fullText);
+  el.classList.remove('typing');
+  isTyping = false;
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function addMsg(role, text, isRestore = false) {
+  const chat = document.getElementById('chat');
+  const wrap = document.createElement('div');
+  wrap.className = 'message ' + role;
+
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+
+  wrap.appendChild(bubble);
+  chat.appendChild(wrap);
+
+  // Onboarding: extract profile block from bot output, hide it from view
+  let visibleText = text;
+  let extractedProfile = null;
+  if (role === 'bot' && currentMode === 'onboarding') {
+    // Tolerant für Whitespace und Markdown-Umhüllung (**<<<PROFIL>>>**)
+    const profileRe = /\*?\*?<<<\s*PROFIL\s*>>>\*?\*?([\s\S]*?)\*?\*?<<<\s*END\s*>>>\*?\*?/i;
+    const m = text.match(profileRe);
+    if (m) {
+      extractedProfile = m[1].trim();
+      visibleText = text.replace(profileRe, '').trim();
+    }
+  }
+
+  if (role === 'user' || isRestore) {
+    bubble.innerHTML = formatText(visibleText);
+  } else {
+    setInputEnabled(false);
+    typewriter(bubble, visibleText).then(() => {
+      if (extractedProfile) {
+        setProfile(extractedProfile);
+        // Short pause, then finish onboarding
+        setTimeout(finishOnboarding, 1200);
+        return;
+      }
+      if (shouldShowExport(visibleText)) appendExportBox(bubble);
+      setInputEnabled(true);
+      document.getElementById('input')?.focus();
+    });
+  }
+
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function finishOnboarding() {
+  // Transition from onboarding chat to the main mode selector
+  const chat = document.getElementById('chat');
+  const done = document.createElement('div');
+  done.className = 'message bot';
+  done.innerHTML = '<div class="bubble" style="color:var(--cp-orange);">[ Profil gespeichert · Weiter zur Mode-Auswahl ]</div>';
+  chat.appendChild(done);
+  chat.scrollTop = chat.scrollHeight;
+  setTimeout(() => {
+    document.getElementById('chatView').style.display = 'none';
+    document.getElementById('selectorView').style.display = 'flex';
+    currentMode = null;
+    messages = [];
+    userAnswerCount = 0;
+    clearSession('onboarding');
+    updateResumeLinks();
+    setInputEnabled(true);
+    renderHeroLine();
+  }, 1400);
+}
+
+function appendExportBox(bubble) {
+  // Entferne vorhandene Export-Boxes (nur eine soll aktuell sein — auf der neuesten Antwort)
+  document.querySelectorAll('#chat .export-box').forEach(el => el.remove());
+  const box = document.createElement('div');
+  box.className = 'export-box';
+  const heading = currentMode === 'holistic'
+    ? '✓ Dein 90-Tage-Plan steht'
+    : currentMode === 'roast'
+    ? '🔥 Das Urteil'
+    : '✓ Deine Notiz';
+  box.innerHTML = `<h4>${heading}</h4>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="export-btn primary" onclick="exportCurrent()">⬇ ${MODE_META[currentMode].exportLabel}</button>
+      <button class="export-btn" onclick="copyLast()">📋 Kopieren</button>
+    </div>`;
+  bubble.appendChild(box);
+}
+
+function shouldShowExport(text) {
+  if (currentMode === 'holistic') {
+    return /90-Tage-Marketing-Plan|90-Tage-Plan|Ausgangssituation/i.test(text) && /Diese Woche/i.test(text);
+  }
+  if (currentMode === 'roast') {
+    return userAnswerCount >= 5 && /weak spot|blind spot|schwachpunkt|das urteil|das loch/i.test(text);
+  }
+  if (currentMode === 'quick') {
+    return userAnswerCount >= 2 && (/konkrete nächste aktion|mach heute|mach morgen|konkret heute|nächster schritt/i.test(text) || userAnswerCount >= 5);
+  }
+  return false;
+}
+
+function formatText(text) {
+  const esc = text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+  return esc
+    // Headings müssen VOR bold/newline-replacement laufen, am Zeilenanfang
+    .replace(/^### (.+)$/gm, '<span class="md-h3">$1</span>')
+    .replace(/^## (.+)$/gm, '<span class="md-h2">$1</span>')
+    .replace(/^# (.+)$/gm, '<span class="md-h1">$1</span>')
+    // Bullet-Listen (- Item) und nummerierte Listen (1. Item)
+    .replace(/^- (.+)$/gm, '<span class="md-li">$1</span>')
+    .replace(/^(\d+)\. (.+)$/gm, '<span class="md-li-num" data-n="$1.">$2</span>')
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/(?<!\*)\*([^*\n]+?)\*(?!\*)/g, '<em>$1</em>')
+    // Doppelte Newlines = Absatz-Trennung (mit margin), einfache = Zeilenumbruch
+    .replace(/\n\n+/g, '<br class="para">')
+    .replace(/\n/g, '<br>');
+}
+
+function showTyping() {
+  const chat = document.getElementById('chat');
+  const wrap = document.createElement('div');
+  wrap.id = 'typing';
+  wrap.className = 'message bot typing-wrap';
+  const bub = document.createElement('div');
+  bub.className = 'typing-bubble';
+  bub.innerHTML = '<div class="tdot"></div><div class="tdot"></div><div class="tdot"></div>';
+  wrap.appendChild(bub);
+  chat.appendChild(wrap);
+  chat.scrollTop = chat.scrollHeight;
+}
+function removeTyping() { const t = document.getElementById('typing'); if (t) t.remove(); }
+
+function updateProgress() {
+  const meta = MODE_META[currentMode];
+  if (!meta.showProgress) return;
+  for (let i = 0; i < meta.maxQuestions; i++) {
+    const el = document.getElementById('step' + i);
+    if (!el) continue;
+    if (i < userAnswerCount) el.className = 'progress-step done';
+    else if (i === userAnswerCount) el.className = 'progress-step active';
+    else el.className = 'progress-step';
+  }
+}
+
+function updateCounter() {
+  const pill = document.getElementById('counterPill');
+  if (!currentMode) { pill.style.display = 'none'; return; }
+  const meta = MODE_META[currentMode];
+  if (currentMode === 'quick') {
+    pill.textContent = `Frage ${Math.min(userAnswerCount + 1, meta.maxQuestions)} von max. ${meta.maxQuestions}`;
+  } else if (currentMode === 'holistic') {
+    pill.textContent = `Frage ${Math.min(userAnswerCount + 1, meta.maxQuestions)} von ~${meta.maxQuestions}`;
+  } else {
+    pill.textContent = `Frage ${Math.min(userAnswerCount + 1, meta.maxQuestions)} von max. ${meta.maxQuestions}`;
+  }
+  pill.style.display = 'inline-flex';
+}
+
+// ─── API ─────────────────────────────────────────────────────────────────────
+async function callClaude(body) {
+  if (IS_STANDALONE) {
+    const key = getApiKey();
+    if (!key) { showApiKeySetup(); throw new Error('API-Key fehlt'); }
+    return fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify(body)
+    });
+  }
+  return fetch('/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+}
+
+// Unified request+render: handles 429 / 401 / network errors / API-key modal.
+// Returns the bot reply text on success, or null on handled error (caller stops).
+let rateLimitWarned = false;
+
+async function requestReply(body) {
+  try {
+    const res = await callClaude(body);
+    // Rate-Limit-Remaining merken — Warn-Bubble wird gleich nach removeTyping eingefügt
+    let warnRemaining = null;
+    const remainingHeader = res.headers?.get?.('x-ratelimit-remaining');
+    if (!rateLimitWarned && remainingHeader) {
+      const remaining = parseInt(remainingHeader, 10);
+      if (!isNaN(remaining) && remaining <= 10 && remaining > 0) {
+        warnRemaining = remaining;
+        rateLimitWarned = true;
+      }
+    }
+    const data = await res.json();
+    removeTyping();
+    if (warnRemaining !== null) {
+      // Instant-Bubble (isRestore=true), damit Typewriter den Reply nicht blockiert
+      addMsg('bot', `⏳ Noch **${warnRemaining} Anfragen** heute — danach greift das Tageslimit.`, true);
+    }
+    if (res.status === 429) {
+      addMsg('bot', `⏳ ${data.message || data.error?.message || 'Tageslimit erreicht — morgen wieder.'}`);
+      return null;
+    }
+    if (res.status === 401) {
+      addMsg('bot', '⚠️ API-Key ungültig. Bitte korrekten Anthropic-Key eingeben.');
+      if (IS_STANDALONE) { clearApiKey(); showApiKeySetup(); }
+      return null;
+    }
+    if (res.status >= 400) {
+      // Technischer Fehler (500, 400, etc.) — User sieht sauber, Details in Console
+      console.error('[requestReply] HTTP ' + res.status, data);
+      addMsg('bot', '⚠️ Technischer Fehler. Bitte versuche es gleich nochmal.');
+      return null;
+    }
+    const text = data.content?.[0]?.text;
+    if (!text) {
+      console.error('[requestReply] Leere Antwort', data);
+      addMsg('bot', '⚠️ Leere Antwort erhalten. Bitte nochmal versuchen.');
+      return null;
+    }
+    return text;
+  } catch (e) {
+    removeTyping();
+    if (e.message !== 'API-Key fehlt') {
+      console.error('[requestReply] Netzwerkfehler', e);
+      addMsg('bot', '⚠️ Verbindungsfehler. Bitte versuche es erneut.');
+    }
+    return null;
+  }
+}
+
+async function initChat() {
+  showTyping();
+  const profile = currentMode !== 'onboarding' ? getProfile() : '';
+  const hasProfile = !!(profile && profile.trim());
+  const initMsg = currentMode === 'onboarding'
+    ? 'Starte den Kennenlern-Check. Kurze Begrüßung (max. 1 Satz — z.B. "Bevor\'s losgeht — kurz kennenlernen."), dann direkt Frage 1 (Branche & Unternehmen in einem Satz).'
+    : currentMode === 'roast'
+    ? (hasProfile
+        ? 'Starte. Ein Satz Begrüßung — hart aber fair — dann spiegle in 1-2 Sätzen die schwächste Stelle die du im Kontext schon erkennst, und frage genau danach. Kein generisches "Beschreib deine Marketing-Strategie" — du hast den Kontext schon.'
+        : 'Starte. Ein Satz Begrüßung — hart aber fair — dann sofort: Beschreib deine Marketing-Strategie.')
+    : currentMode === 'holistic'
+    ? (hasProfile
+        ? 'Starte die holistische Diagnose. Kurze Begrüßung, spiegle in 1-2 Sätzen was du über die Situation schon weißt, erklär dass wir uns durch ~30 Fragen arbeiten und am Ende ein 90-Tage-Plan steht. Dann direkt Frage 1 — aber wenn sie durch den Kontext schon beantwortet ist, bestätige die Info kurz und spring zur nächsten offenen Frage.'
+        : 'Starte die holistische Diagnose. Kurze Begrüßung (1–2 Sätze) — erklär kurz dass wir uns durch ~30 Fragen arbeiten und am Ende ein 90-Tage-Plan steht. Dann direkt Frage 1 (Kontext).')
+    : (hasProfile
+        ? 'Starte. Kurze Begrüßung, spiegle in 1-2 Sätzen was du über die Situation schon weißt, und stelle dann eine spezifische erste Frage die direkt auf den Kontext zugeschnitten ist. KEIN generisches "Was ist gerade dein größtes Marketing-Ding?" — die Frage muss zeigen dass du den Kontext gelesen hast.'
+        : 'Starte. Kurze Begrüßung (1 Satz) — direkt, kein Aufwärmen — dann sofort: Was ist gerade dein größtes Marketing-Ding? (oder ähnlich)');
+
+  const systemPrompt = buildSystemPrompt(currentMode, userAnswerCount, profile);
+  const reply = await requestReply({
+    model: 'claude-sonnet-4-6',
+    max_tokens: currentMode === 'holistic' ? 2000 : 1000,
+    system: systemPrompt,
+    messages: [{ role: 'user', content: initMsg }]
+  });
+  if (reply === null) return;
+  messages.push({ role: 'user', content: initMsg });
+  messages.push({ role: 'assistant', content: reply });
+  addMsg('bot', reply);
+  saveSession(currentMode, messages, userAnswerCount);
+}
+
+async function fetchReply() {
+  showTyping();
+  const profile = currentMode !== 'onboarding' ? getProfile() : '';
+  const systemPrompt = buildSystemPrompt(currentMode, userAnswerCount, profile);
+  const reply = await requestReply({
+    model: 'claude-sonnet-4-6',
+    max_tokens: currentMode === 'holistic' ? 2500 : 1500,
+    system: systemPrompt,
+    messages
+  });
+  if (reply === null) return;
+  messages.push({ role: 'assistant', content: reply });
+  addMsg('bot', reply);
+  updateProgress();
+  updateCounter();
+  saveSession(currentMode, messages, userAnswerCount);
+  // Input wird durch addMsg() nach Typewriter re-enabled
+}
+
+async function send() {
+  const input = document.getElementById('input');
+  const btn = document.getElementById('sendBtn');
+  if (btn.disabled || isTyping) return;
+  const text = input.value.trim();
+  if (!text || !currentMode) return;
+  input.value = '';
+  input.style.height = 'auto';
+  clearDraft(currentMode);
+  setInputEnabled(false);
+  addMsg('user', text);
+  messages.push({ role: 'user', content: text });
+  userAnswerCount++;
+  updateProgress();
+  updateCounter();
+  saveSession(currentMode, messages, userAnswerCount);
+  await fetchReply();
+}
+
+// ─── EXPORT ──────────────────────────────────────────────────────────────────
+function exportCurrent() {
+  if (!currentMode || messages.length === 0) return;
+  const meta = MODE_META[currentMode];
+  const lastBot = [...messages].reverse().find(m => m.role === 'assistant');
+  if (!lastBot) return;
+
+  const header = `# ${meta.title}\n_Marketing Co-Pilot · ${new Date().toLocaleDateString('de-DE', { year: 'numeric', month: 'long', day: 'numeric' })}_\n\n---\n\n`;
+  const content = header + lastBot.content;
+
+  const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = meta.exportFileName;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function copyLast() {
+  const lastBot = [...messages].reverse().find(m => m.role === 'assistant');
+  if (!lastBot) return;
+  navigator.clipboard.writeText(lastBot.content).then(() => {
+    const btns = document.querySelectorAll('.export-btn');
+    btns.forEach(b => {
+      if (b.textContent.includes('Kopieren')) {
+        const orig = b.textContent;
+        b.textContent = '✓ Kopiert!';
+        setTimeout(() => { b.textContent = orig; }, 1800);
+      }
+    });
+  });
+}
+
+// ─── INPUT HANDLERS ──────────────────────────────────────────────────────────
+const inputEl = document.getElementById('input');
+const DRAFT_KEY = 'ma_drafts_v1';
+let draftSaveTimer = null;
+
+function getDrafts() { try { return JSON.parse(safeGetItem(DRAFT_KEY)) || {}; } catch { return {}; } }
+function saveDraft(mode, value) {
+  if (!mode) return;
+  clearTimeout(draftSaveTimer);
+  draftSaveTimer = setTimeout(() => {
+    const drafts = getDrafts();
+    if (value) drafts[mode] = value;
+    else delete drafts[mode];
+    safeSetItem(DRAFT_KEY, JSON.stringify(drafts));
+  }, 300);
+}
+function restoreDraft(mode) {
+  if (!mode) return;
+  const drafts = getDrafts();
+  const val = drafts[mode] || '';
+  inputEl.value = val;
+  if (val) {
+    inputEl.style.height = 'auto';
+    inputEl.style.height = Math.min(inputEl.scrollHeight, 140) + 'px';
+  }
+}
+function clearDraft(mode) {
+  if (!mode) return;
+  const drafts = getDrafts();
+  delete drafts[mode];
+  safeSetItem(DRAFT_KEY, JSON.stringify(drafts));
+}
+
+inputEl.addEventListener('input', () => {
+  inputEl.style.height = 'auto';
+  inputEl.style.height = Math.min(inputEl.scrollHeight, 140) + 'px';
+  saveDraft(currentMode, inputEl.value);
+});
+inputEl.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,288 @@
+/* ============================================================
+   CO-PILOT DESIGN SYSTEM · v1.1 (fluid pixel scale)
+   Retro-pixel aesthetic · chunky offsets · terminal prompt feel
+
+   Responsive model:
+     The "pixel" is a CSS variable (--px). Every border, shadow
+     offset, and chunky element multiplies it. Change --px at a
+     breakpoint and the entire aesthetic scales coherently.
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=VT323&family=Press+Start+2P&family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  /* ---- THE pixel unit (mobile default) ---- */
+  --px: 2px;
+
+  /* ---- Derived pixel steps (always use these) ---- */
+  --px-2: calc(var(--px) * 2);
+  --px-3: calc(var(--px) * 3);
+  --px-4: calc(var(--px) * 4);
+  --px-6: calc(var(--px) * 6);
+
+  /* ---- Color palette ---- */
+  --cp-orange:       #FF914D;
+  --cp-orange-deep:  #E8731F;
+  --cp-orange-soft:  #FFB07A;
+  --cp-black:        #1F1F1F;
+  --cp-off-white:    #F8F8F8;
+  --cp-navy:         #212A32;
+  --cp-navy-deep:    #171E24;
+  --cp-danger:       #FF6B6B;
+  --cp-danger-deep:  #C43838;
+  --cp-cool:         #5BA3D0;
+  --cp-cool-deep:    #3D7DA3;
+  --cp-line:         rgba(255,145,77,0.35);
+
+  /* ---- Typography ---- */
+  --cp-font-display: 'Press Start 2P', ui-monospace, monospace;
+  --cp-font-mono:    'VT323', ui-monospace, SFMono-Regular, monospace;
+  --cp-font-ui:      'Inter', system-ui, -apple-system, sans-serif;
+
+  /* Fluid type — snap-feeling via clamp, anchored to the pixel grid */
+  --cp-size-hero:  clamp(1.5rem, 5.5vw, 3.25rem);   /* Press Start 2P — logo/hero */
+  --cp-size-h1:    clamp(1.125rem, 3.2vw, 1.75rem); /* Press Start 2P — section heads */
+  --cp-size-h2:    clamp(1.125rem, 2vw, 1.5rem);    /* Inter 700 */
+  --cp-size-body:  clamp(0.9375rem, 1.4vw, 1rem);   /* Inter body */
+  --cp-size-small: clamp(0.75rem, 1vw, 0.875rem);
+  --cp-size-btn:   clamp(0.625rem, 1.1vw, 0.875rem);/* Press Start 2P on buttons */
+  --cp-size-mono:  clamp(1rem, 1.6vw, 1.25rem);     /* VT323 */
+
+  /* ---- Spacing (8px pixel grid) ---- */
+  --cp-space-1: 4px;
+  --cp-space-2: 8px;
+  --cp-space-3: 16px;
+  --cp-space-4: 24px;
+  --cp-space-5: 32px;
+  --cp-space-6: 48px;
+  --cp-space-7: 64px;
+
+  /* ---- Radii ---- */
+  --cp-radius-pixel: 0px;
+  --cp-radius-chip:  calc(var(--px) * 2);
+  --cp-radius-card:  calc(var(--px) * 4);
+
+  /* ---- Borders (all multiples of --px) ---- */
+  --cp-border:         var(--px);
+  --cp-border-chunky:  calc(var(--px) * 1.5);
+
+  /* ---- Shadows (0 blur — never blur an 8-bit shadow) ---- */
+  --cp-shadow-pixel:
+    var(--px) var(--px) 0 var(--cp-black),
+    var(--px-2) var(--px-2) 0 var(--cp-orange-deep);
+  --cp-shadow-pixel-lg:
+    var(--px) var(--px) 0 var(--cp-black),
+    var(--px-3) var(--px-3) 0 var(--cp-orange-deep);
+  --cp-shadow-glow:
+    0 0 0 var(--px) var(--cp-orange),
+    0 0 calc(var(--px) * 6) rgba(255,145,77,0.55);
+
+  --cp-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --cp-dur:  160ms;
+}
+
+/* ============================================================
+   Responsive pixel scaling
+   — the pixel unit grows with the viewport
+   ============================================================ */
+@media (min-width: 640px)  { :root { --px: 2.5px; } }
+@media (min-width: 1024px) { :root { --px: 3px;   } }
+@media (min-width: 1440px) { :root { --px: 4px;   } }
+
+/* ============================================================
+   Base
+   ============================================================ */
+.cp-root {
+  font-family: var(--cp-font-ui);
+  color: var(--cp-off-white);
+  background: var(--cp-navy);
+  font-size: var(--cp-size-body);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Keep raster crisp when/if used */
+.cp-root img[data-pixel],
+.cp-pixel-img { image-rendering: pixelated; image-rendering: crisp-edges; }
+
+/* Sharpen SVGs drawn on a pixel grid */
+.cp-root svg { shape-rendering: crispEdges; }
+
+.cp-display { font-family: var(--cp-font-display); letter-spacing: 0.02em; }
+.cp-mono    { font-family: var(--cp-font-mono);    }
+
+/* ============================================================
+   Buttons
+   ============================================================ */
+.cp-btn {
+  --fg: var(--cp-black);
+  --bg: var(--cp-orange);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--cp-space-2);
+  padding: 0.625em 1em 0.625em 0.625em;
+  font-family: var(--cp-font-display);
+  font-size: var(--cp-size-btn);
+  letter-spacing: 0.06em;
+  line-height: 1;
+  color: var(--fg);
+  background: var(--bg);
+  border: var(--cp-border) solid var(--cp-black);
+  border-radius: var(--cp-radius-chip);
+  box-shadow: var(--cp-shadow-pixel);
+  cursor: pointer;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition:
+    transform var(--cp-dur) var(--cp-ease),
+    box-shadow var(--cp-dur) var(--cp-ease),
+    background var(--cp-dur) var(--cp-ease);
+}
+.cp-btn:hover {
+  background: var(--cp-orange-soft);
+  transform: translate(calc(var(--px) * -0.5), calc(var(--px) * -0.5));
+  box-shadow: var(--cp-shadow-pixel-lg);
+}
+.cp-btn:active {
+  transform: translate(var(--px), var(--px));
+  box-shadow: 0 0 0 var(--cp-black);
+}
+.cp-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--cp-shadow-glow), var(--cp-shadow-pixel);
+}
+
+.cp-btn--ghost {
+  --fg: var(--cp-off-white);
+  --bg: transparent;
+  border-color: var(--cp-orange);
+  box-shadow: none;
+}
+.cp-btn--ghost:hover { background: rgba(255,145,77,0.10); }
+
+.cp-btn--light {
+  --fg: var(--cp-black);
+  --bg: var(--cp-off-white);
+  border-color: var(--cp-black);
+}
+
+/* Play icon chip — embeds an SVG triangle */
+.cp-btn__icon {
+  display: inline-grid;
+  place-items: center;
+  width: 1.6em; height: 1.6em;
+  background: var(--cp-black);
+  color: var(--cp-off-white);
+  border: var(--cp-border) solid var(--cp-black);
+  border-radius: calc(var(--px) * 1);
+  flex-shrink: 0;
+}
+.cp-btn__icon svg { width: 0.6em; height: 0.6em; fill: currentColor; }
+
+/* Prompt caret */
+.cp-btn__caret { display: inline-flex; align-items: baseline; }
+.cp-btn__caret::before {
+  content: '>';
+  margin-right: 0.35em;
+  color: var(--cp-orange);
+  font-family: var(--cp-font-mono);
+  font-size: 1.5em;
+  line-height: 0;
+  transform: translateY(0.05em);
+}
+.cp-btn--light .cp-btn__caret::before { color: var(--cp-orange-deep); }
+
+/* ============================================================
+   Containers
+   ============================================================ */
+.cp-card {
+  background: var(--cp-navy-deep);
+  border: var(--cp-border-chunky) solid var(--cp-orange);
+  border-radius: var(--cp-radius-card);
+  padding: var(--cp-space-4);
+  box-shadow: var(--cp-shadow-pixel-lg);
+}
+
+.cp-panel {
+  background: var(--cp-off-white);
+  color: var(--cp-black);
+  border: var(--cp-border) solid var(--cp-black);
+  border-radius: var(--cp-radius-chip);
+  padding: 0.625em 0.875em;
+  font-family: var(--cp-font-display);
+  font-size: var(--cp-size-btn);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--cp-space-2);
+}
+
+.cp-terminal {
+  background: var(--cp-off-white);
+  color: var(--cp-black);
+  border: var(--cp-border-chunky) solid var(--cp-orange);
+  border-radius: var(--cp-radius-card);
+  padding: var(--cp-space-3) var(--cp-space-4);
+  font-family: var(--cp-font-mono);
+  font-size: var(--cp-size-mono);
+  line-height: 1.4;
+  box-shadow: var(--cp-shadow-pixel-lg);
+}
+.cp-terminal::before {
+  content: '> ';
+  color: var(--cp-orange-deep);
+  font-weight: 700;
+}
+
+/* ============================================================
+   Typography utilities
+   ============================================================ */
+.cp-hero   { font-family: var(--cp-font-display); font-size: var(--cp-size-hero); line-height: 1.1;  letter-spacing: 0.02em; }
+.cp-h1     { font-family: var(--cp-font-display); font-size: var(--cp-size-h1);   line-height: 1.15; letter-spacing: 0.02em; }
+.cp-h2     { font-family: var(--cp-font-ui);      font-size: var(--cp-size-h2);   font-weight: 700;  line-height: 1.2; }
+.cp-body   { font-family: var(--cp-font-ui);      font-size: var(--cp-size-body); line-height: 1.6;  color: #D8DDE2; }
+.cp-small  { font-family: var(--cp-font-ui);      font-size: var(--cp-size-small); color: #9AA3AC; }
+.cp-accent { color: var(--cp-orange); }
+
+/* ============================================================
+   Layout helpers
+   ============================================================ */
+.cp-grid-bg {
+  background-image:
+    linear-gradient(var(--cp-line) var(--px), transparent var(--px)),
+    linear-gradient(90deg, var(--cp-line) var(--px), transparent var(--px));
+  background-size: clamp(16px, 3vw, 24px) clamp(16px, 3vw, 24px);
+}
+
+.cp-stack > * + * { margin-top: var(--cp-space-3); }
+.cp-row           { display: flex; gap: var(--cp-space-3); align-items: center; flex-wrap: wrap; }
+
+/* ============================================================
+   Forms
+   ============================================================ */
+.cp-input {
+  width: 100%;
+  padding: 0.75em 0.875em;
+  font-family: var(--cp-font-mono);
+  font-size: var(--cp-size-mono);
+  color: var(--cp-black);
+  background: var(--cp-off-white);
+  border: var(--cp-border) solid var(--cp-black);
+  border-radius: var(--cp-radius-chip);
+  box-shadow: var(--px) var(--px) 0 var(--cp-orange-deep);
+  outline: none;
+  transition: box-shadow var(--cp-dur) var(--cp-ease);
+}
+.cp-input:focus { box-shadow: var(--cp-shadow-glow); }
+
+/* ============================================================
+   Accessibility & touch
+   ============================================================ */
+.cp-btn, .cp-input { min-height: 44px; }   /* iOS tap target */
+
+@media (prefers-reduced-motion: reduce) {
+  .cp-btn { transition: none; }
+  .cp-btn:hover  { transform: none; }
+  .cp-btn:active { transform: none; }
+}

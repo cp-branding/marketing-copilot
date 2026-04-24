@@ -227,13 +227,30 @@ body::before {
 }
 
 .mode-icon {
-  font-size: 32px;
+  width: 40px;
+  height: 40px;
   margin-bottom: 14px;
-  line-height: 1;
-  filter: drop-shadow(0 0 8px rgba(255,145,77,0.3));
+  display: grid;
+  place-items: center;
+  background: rgba(0,0,0,0.35);
+  border: var(--cp-border) solid var(--cp-orange);
+  border-radius: 0;
+  filter: drop-shadow(0 0 8px rgba(255,145,77,0.25));
 }
-.mode-card.fix .mode-icon { filter: drop-shadow(0 0 8px rgba(255,107,107,0.35)); }
-.mode-card.roast .mode-icon { filter: drop-shadow(0 0 8px rgba(91,163,208,0.4)); }
+.mode-icon svg {
+  width: 22px;
+  height: 22px;
+  shape-rendering: crispEdges;
+  image-rendering: pixelated;
+}
+.mode-card.fix .mode-icon {
+  border-color: var(--cp-danger, #FF6B6B);
+  filter: drop-shadow(0 0 8px rgba(255,107,107,0.3));
+}
+.mode-card.roast .mode-icon {
+  border-color: var(--cp-cool, #5BA3D0);
+  filter: drop-shadow(0 0 8px rgba(91,163,208,0.35));
+}
 
 .mode-tag {
   font-family: var(--cp-font-display);
@@ -276,32 +293,149 @@ body::before {
 .mode-card.fix .mode-meta { border-top-color: rgba(255,107,107,0.3); }
 .mode-card.roast .mode-meta { border-top-color: rgba(91,163,208,0.35); }
 
-.resume-link {
-  margin-top: 10px;
-  display: inline-block;
-  font-family: var(--cp-font-mono);
-  font-size: 0.9375rem;
-  color: var(--cp-orange);
+/* Energy-Bar — Tekken-Health-Bar-Optik, zeigt Resume-State pro Modus */
+.cp-energy {
+  --accent: var(--cp-orange);
+  --accent-deep: var(--cp-orange-deep);
+  --fill: 0%;
+  margin-top: 14px;
+  height: 26px;
+  background: rgba(0,0,0,0.45);
+  border: var(--cp-border) solid var(--accent);
+  border-radius: 0;
+  position: relative;
+  overflow: hidden;
   cursor: pointer;
-  padding: 6px 12px;
-  background: rgba(255,145,77,0.1);
-  border: var(--cp-border) solid var(--cp-orange);
-  border-radius: var(--cp-radius-chip);
-  transition: background var(--cp-dur) var(--cp-ease);
+  transition: transform var(--cp-dur) var(--cp-ease);
 }
-.resume-link:hover { background: rgba(255,145,77,0.2); }
-.mode-card.fix .resume-link {
-  color: var(--cp-danger, #FF6B6B);
-  background: rgba(255,107,107,0.1);
-  border-color: var(--cp-danger, #FF6B6B);
+.cp-energy:hover { transform: translate(-1px, -1px); }
+.cp-energy::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--fill);
+  background: linear-gradient(90deg, var(--accent), var(--cp-orange-soft));
+  transition: width 0.45s cubic-bezier(.2,.8,.2,1);
 }
-.mode-card.fix .resume-link:hover { background: rgba(255,107,107,0.2); }
-.mode-card.roast .resume-link {
-  color: var(--cp-cool, #5BA3D0);
-  background: rgba(91,163,208,0.1);
-  border-color: var(--cp-cool, #5BA3D0);
+.cp-energy__label {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 100%;
+  padding: 0 10px;
+  font-family: var(--cp-font-display);
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--cp-off-white);
+  mix-blend-mode: difference;
 }
-.mode-card.roast .resume-link:hover { background: rgba(91,163,208,0.2); }
+.mode-card.fix .cp-energy {
+  --accent: var(--cp-danger, #FF6B6B);
+  --accent-deep: var(--cp-danger-deep, #C43838);
+}
+.mode-card.fix .cp-energy::before {
+  background: linear-gradient(90deg, var(--cp-danger, #FF6B6B), #FF9090);
+}
+.mode-card.roast .cp-energy {
+  --accent: var(--cp-cool, #5BA3D0);
+  --accent-deep: var(--cp-cool-deep, #3D7DA3);
+}
+.mode-card.roast .cp-energy::before {
+  background: linear-gradient(90deg, var(--cp-cool, #5BA3D0), #7FB8DB);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CHROME MAST (left rail) + TOPBAR (slide counter · READY clock)
+   Infect-BBS / arcade character-select vibes. Scoped to selectorView.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.cp-mast {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 56px;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 0 24px;
+  background: linear-gradient(180deg, #101418 0%, #1B2028 50%, #101418 100%);
+  border-right: 1px solid rgba(255,255,255,0.04);
+  z-index: 99;
+  pointer-events: none;
+}
+.cp-mast__logo {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-family: var(--cp-font-display);
+  font-size: 14px;
+  letter-spacing: 6px;
+  background: linear-gradient(180deg,
+    #E8EAED 0%, #8A95A1 45%, #3A434D 55%, #8A95A1 75%, #E8EAED 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 1px 0 rgba(0,0,0,0.5);
+}
+.cp-mast__dots {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.cp-mast__dots i {
+  width: 8px;
+  height: 8px;
+  display: block;
+  background: #2A333D;
+  border: 1px solid #3A434D;
+}
+.cp-mast__dots i.on {
+  background: #7DF9A0;
+  border-color: #7DF9A0;
+  box-shadow: 0 0 6px #7DF9A0;
+}
+.cp-mast__status {
+  font-family: var(--cp-font-mono);
+  color: #7DF9A0;
+  font-size: 13px;
+  letter-spacing: 1px;
+  transform: rotate(-90deg);
+  white-space: nowrap;
+  margin-bottom: 28px;
+}
+@media (max-width: 860px) { .cp-mast { display: none; } }
+
+.cp-topbar {
+  width: 100%;
+  max-width: 1040px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--cp-font-mono);
+  font-size: 16px;
+  color: #9AA3AC;
+  letter-spacing: 1px;
+  margin-bottom: clamp(24px, 3vw, 40px);
+  position: relative;
+  z-index: 1;
+}
+.cp-topbar .tb-counter { color: var(--cp-orange); }
+.cp-topbar .tb-counter b { color: var(--cp-off-white); font-weight: normal; }
+.cp-topbar .tb-clock { color: #7DF9A0; }
+.cp-topbar .tb-clock::before {
+  content: '●';
+  margin-right: 8px;
+  color: #7DF9A0;
+  animation: tbBlink 1.4s steps(2, end) infinite;
+}
+@keyframes tbBlink { 50% { opacity: 0.25; } }
+
+/* Shift selectorView content right on desktop so mast doesn't overlap */
+@media (min-width: 860px) {
+  #selectorView { padding-left: clamp(80px, 6vw, 104px); padding-right: clamp(32px, 4vw, 48px); }
+}
 
 /* ═══════════════════════════════════════════════════════════════════════════
    CHAT VIEW
@@ -1004,6 +1138,20 @@ textarea#input::placeholder { color: #9AA3AC; }
 
 <!-- ═══════ SELECTOR ═══════ -->
 <div id="selectorView">
+
+  <!-- Chrome mast (left rail) — vertical CO-PILOT logo, status LEDs, ONLINE flag -->
+  <aside class="cp-mast" aria-hidden="true">
+    <div class="cp-mast__logo">CO-PILOT</div>
+    <div class="cp-mast__dots"><i class="on"></i><i class="on"></i><i></i><i></i></div>
+    <div class="cp-mast__status">ONLINE</div>
+  </aside>
+
+  <!-- Topbar — slide counter + blinking READY clock -->
+  <div class="cp-topbar" aria-hidden="true">
+    <div class="tb-counter">&gt; <b>001</b> / 003</div>
+    <div class="tb-clock">READY</div>
+  </div>
+
   <div class="select-header">
     <h1 id="heroLine">Moin.</h1>
     <p>Drei Wege. Such dir den aus, der gerade passt — du kannst jederzeit wechseln.</p>
@@ -1015,30 +1163,42 @@ textarea#input::placeholder { color: #9AA3AC; }
 
   <div class="mode-grid">
     <div class="mode-card fix" role="button" tabindex="0" aria-label="Modus 1: Fix starten" onclick="openMode('quick')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openMode('quick');}">
-      <div class="mode-icon" aria-hidden="true">⚡</div>
+      <div class="mode-icon" aria-hidden="true">
+        <svg viewBox="0 0 16 16" shape-rendering="crispEdges"><path fill="#FF6B6B" d="M9 1H7v2H5v2H3v2H2v2h3v2H4v2h1v2h2v-2h2v-2h2V7h-3V5h2V3h-1z"/></svg>
+      </div>
       <div class="mode-tag">Modus 1</div>
       <div class="mode-title">Fix</div>
       <div class="mode-desc">Dein Problem, in 5 Minuten sortiert. Kurze Triage, dann sofort konkrete Empfehlung — keine Schleife.</div>
       <div class="mode-meta">&gt; 3–5 Fragen · ~5 min</div>
-      <div id="resume-quick"></div>
+      <div class="cp-energy" data-mode="quick" role="button" tabindex="0" aria-label="Fix neu starten" onclick="energyClick(event,'quick')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();energyClick(event,'quick');}">
+        <div class="cp-energy__label"><span class="cp-energy__state">START</span><em class="cp-energy__progress">NEW</em></div>
+      </div>
     </div>
 
     <div class="mode-card" role="button" tabindex="0" aria-label="Modus 2: Build starten" onclick="openMode('holistic')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openMode('holistic');}">
-      <div class="mode-icon" aria-hidden="true">🧭</div>
+      <div class="mode-icon" aria-hidden="true">
+        <svg viewBox="0 0 16 16" shape-rendering="crispEdges"><path fill="#FF914D" d="M6 1h4v1H6zM4 2h2v1H4zm6 0h2v1h-2zM3 3h1v1H3zm9 0h1v1h-1zM2 4h1v2H2zm11 0h1v2h-1zM6 5h1v1H6zm3 0h1v1H9zM5 6h1v1H5zm2 0h2v1H7zm3 0h1v1h-1zM2 6h1v4H2zm11 0h1v4h-1zM5 7h1v2H5zm5 0h1v2h-1zM6 9h1v1H6zm3 0h1v1H9zM3 10h1v1H3zm9 0h1v1h-1zM2 11h1v1H2zm11 0h1v1h-1zM4 12h2v1H4zm6 0h2v1h-2zM6 13h4v1H6z"/></svg>
+      </div>
       <div class="mode-tag">Modus 2</div>
       <div class="mode-title">Build</div>
       <div class="mode-desc">30 goldene Fragen. Vollständige Diagnose über alle Marketing-Bereiche — am Ende steht dein 90-Tage-Plan.</div>
       <div class="mode-meta">&gt; ~30 Fragen · ~30 min</div>
-      <div id="resume-holistic"></div>
+      <div class="cp-energy" data-mode="holistic" role="button" tabindex="0" aria-label="Build neu starten" onclick="energyClick(event,'holistic')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();energyClick(event,'holistic');}">
+        <div class="cp-energy__label"><span class="cp-energy__state">START</span><em class="cp-energy__progress">NEW</em></div>
+      </div>
     </div>
 
     <div class="mode-card roast" role="button" tabindex="0" aria-label="Modus 3: Test starten" onclick="openMode('roast')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openMode('roast');}">
-      <div class="mode-icon" aria-hidden="true">🔥</div>
+      <div class="mode-icon" aria-hidden="true">
+        <svg viewBox="0 0 16 16" shape-rendering="crispEdges"><path fill="#5BA3D0" d="M8 1h1v2h1v2h1v1h1v2h1v3h-1v2h-1v1h-2v1H6v-1H4v-1H3v-2H2v-3h1V8h1V6h1V4h1V2h1V1z"/></svg>
+      </div>
       <div class="mode-tag">Modus 3</div>
       <div class="mode-title">Test</div>
       <div class="mode-desc">Kein Lob. Nur Löcher. Beschreib deine Strategie — und bekomm den Schwachpunkt scharf benannt.</div>
       <div class="mode-meta">&gt; 5–10 Fragen · ein Urteil</div>
-      <div id="resume-roast"></div>
+      <div class="cp-energy" data-mode="roast" role="button" tabindex="0" aria-label="Test neu starten" onclick="energyClick(event,'roast')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();energyClick(event,'roast');}">
+        <div class="cp-energy__label"><span class="cp-energy__state">START</span><em class="cp-energy__progress">NEW</em></div>
+      </div>
     </div>
   </div>
 
@@ -1825,38 +1985,44 @@ function clearSession(mode) {
   }
 })();
 
-// ─── SELECTOR ────────────────────────────────────────────────────────────────
-function updateResumeLinks() {
+// ─── SELECTOR — Energy-Bars (Tekken-Health-Bar-Style) ────────────────────────
+const ENERGY_TOTALS = { quick: 5, holistic: 30, roast: 10 };
+
+function updateEnergyBars() {
   ['quick', 'holistic', 'roast'].forEach(mode => {
-    const el = document.getElementById('resume-' + mode);
-    if (!el) return;
+    const bar = document.querySelector('.cp-energy[data-mode="' + mode + '"]');
+    if (!bar) return;
     const saved = getSession(mode);
-    el.textContent = '';
-    if (!saved || !saved.msgs || saved.msgs.length <= 1) return;
-    const count = Number(saved.answerCount) || 0;
-    const label = mode === 'holistic'
-      ? `↻ Fortsetzen (Frage ${count + 1}/~30)`
-      : mode === 'quick'
-      ? `↻ Fortsetzen (${count}/5)`
-      : `↻ Fortsetzen (${count}/10)`;
-    const link = document.createElement('div');
-    link.className = 'resume-link';
-    link.textContent = label;
-    link.setAttribute('role', 'button');
-    link.setAttribute('tabindex', '0');
-    link.setAttribute('aria-label', `Session fortsetzen: ${label}`);
-    const resume = e => { e.stopPropagation(); openMode(mode, true); };
-    link.addEventListener('click', resume);
-    link.addEventListener('keydown', e => {
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); resume(e); }
-    });
-    el.appendChild(link);
+    const hasSession = !!(saved && saved.msgs && saved.msgs.length > 1);
+    const count = hasSession ? (Number(saved.answerCount) || 0) : 0;
+    const total = ENERGY_TOTALS[mode];
+    const fillPct = hasSession ? Math.min(100, Math.round((count / total) * 100)) : 0;
+    bar.style.setProperty('--fill', fillPct + '%');
+    const stateEl = bar.querySelector('.cp-energy__state');
+    const progEl = bar.querySelector('.cp-energy__progress');
+    if (hasSession) {
+      stateEl.textContent = 'FORTSETZEN';
+      progEl.textContent = count + ' / ' + total;
+      bar.setAttribute('aria-label', 'Session fortsetzen: ' + count + ' von ' + total + ' beantwortet');
+    } else {
+      stateEl.textContent = 'START';
+      progEl.textContent = 'NEW';
+      bar.setAttribute('aria-label', 'Neuen ' + mode + '-Modus starten');
+    }
   });
 }
+
+function energyClick(event, mode) {
+  event.stopPropagation();
+  const saved = getSession(mode);
+  const hasSession = !!(saved && saved.msgs && saved.msgs.length > 1);
+  openMode(mode, hasSession);
+}
+
 // Erstes Render aus localStorage-Mirror (sofort, kein Flash leerer Zustand),
 // dann Bootstrap aus Supabase und Re-Render mit Cloud-Daten.
-updateResumeLinks();
-bootstrapSessions().then(updateResumeLinks);
+updateEnergyBars();
+bootstrapSessions().then(updateEnergyBars);
 
 // ─── OPEN MODE ───────────────────────────────────────────────────────────────
 function openMode(mode, resume = false) {
@@ -1932,7 +2098,7 @@ function goBack() {
   currentMode = null;
   messages = [];
   userAnswerCount = 0;
-  updateResumeLinks();
+  updateEnergyBars();
   renderHeroLine();
 }
 
@@ -2056,7 +2222,7 @@ function finishOnboarding() {
     messages = [];
     userAnswerCount = 0;
     clearSession('onboarding');
-    updateResumeLinks();
+    updateEnergyBars();
     setInputEnabled(true);
     renderHeroLine();
   }, 1400);

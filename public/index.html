@@ -1260,12 +1260,11 @@ function setApiKey(k) { return safeSetItem(API_KEY_STORE, k); }
 function clearApiKey() { safeRemoveItem(API_KEY_STORE); }
 
 function maybeStartOnboarding() {
-  // Wenn noch kein Profil gespeichert — First-Visit → Onboarding starten
-  if (!localStorage.getItem('ma_profile_v1')) {
-    // openMode ist u.U. noch nicht definiert wenn Script oben läuft — daher defer
+  // getProfile() liest aus __profileCache (nach bootstrapProfile() befüllt) oder localStorage-Mirror.
+  // Wichtig: bootstrapProfile MUSS vorher gelaufen sein, sonst greift nur der lokale Mirror.
+  if (!getProfile()) {
     setTimeout(() => { if (typeof openMode === 'function') openMode('onboarding'); }, 50);
   } else {
-    // Profil da → Hero-Line personalisiert animieren
     setTimeout(() => { if (typeof renderHeroLine === 'function') renderHeroLine(); }, 150);
   }
 }
@@ -1408,7 +1407,7 @@ if (IS_STANDALONE) {
     bootIntroDismiss();
     document.addEventListener('DOMContentLoaded', showApiKeySetup);
   } else {
-    bootMinDelay.then(() => {
+    Promise.all([bootMinDelay, bootstrapProfile()]).then(() => {
       bootIntroDismiss();
       if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', maybeStartOnboarding);
@@ -1422,6 +1421,9 @@ if (IS_STANDALONE) {
     try {
       const [res] = await Promise.all([fetch('/api/auth'), bootMinDelay]);
       if (!res.ok) { bootIntroDismiss(); window.location.href = '/login'; return; }
+      // Profil aus Cloud laden BEVOR Onboarding-Check — sonst startet Desktop Onboarding
+      // obwohl Mobile schon ein Profil gespeichert hat.
+      await bootstrapProfile();
       bootIntroDismiss();
       maybeStartOnboarding();
     } catch {
@@ -1507,10 +1509,57 @@ const MODE_META = {
 };
 
 // ─── USER PROFILE (aus Onboarding) ───────────────────────────────────────────
+// Profil-Persistierung:
+// Primär: Supabase via /api/profile (Cross-Device, überlebt Cache-Clear).
+// Mirror: localStorage für Offline-Fallback.
+// In-Memory-Cache hält das Sync-Interface stabil — getProfile() bleibt synchron.
 const PROFILE_KEY = 'ma_profile_v1';
-function getProfile() { return safeGetItem(PROFILE_KEY) || ''; }
-function setProfile(p) { return safeSetItem(PROFILE_KEY, p); }
-function clearProfile() { safeRemoveItem(PROFILE_KEY); }
+let __profileCache = null;
+
+async function bootstrapProfile() {
+  if (IS_STANDALONE) {
+    __profileCache = safeGetItem(PROFILE_KEY) || '';
+    return;
+  }
+  try {
+    const r = await fetch('/api/profile', { credentials: 'include' });
+    if (r.ok) {
+      const data = await r.json();
+      __profileCache = data.profile || '';
+      if (__profileCache) safeSetItem(PROFILE_KEY, __profileCache);
+      else safeRemoveItem(PROFILE_KEY);
+      return;
+    }
+  } catch {}
+  __profileCache = safeGetItem(PROFILE_KEY) || '';
+}
+
+function getProfile() {
+  if (__profileCache !== null) return __profileCache;
+  return safeGetItem(PROFILE_KEY) || '';
+}
+
+function setProfile(p) {
+  __profileCache = p;
+  const ok = safeSetItem(PROFILE_KEY, p);
+  if (!IS_STANDALONE) {
+    fetch('/api/profile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ profile: p }),
+    }).catch(() => {});
+  }
+  return ok;
+}
+
+function clearProfile() {
+  __profileCache = '';
+  safeRemoveItem(PROFILE_KEY);
+  if (!IS_STANDALONE) {
+    fetch('/api/profile', { method: 'DELETE', credentials: 'include' }).catch(() => {});
+  }
+}
 
 const PROMPT_ONBOARDING = `Du führst den **einmaligen Kennenlern-Check** für Constantins Marketing Co-Pilot durch. Ziel: in **genau 8 Fragen** ein vollständiges Profil bauen, damit alle kommenden Sessions sofort mit Kontext starten.
 

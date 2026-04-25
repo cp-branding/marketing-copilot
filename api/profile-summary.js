@@ -10,8 +10,8 @@
 
 import crypto from 'crypto';
 
-const MODEL = 'claude-sonnet-4-6';
-const MAX_TOKENS = 3000;
+const MODEL = 'claude-haiku-4-5-20251001';
+const MAX_TOKENS = 1800;
 
 function getAuthedEmail(req) {
   const cookie = req.headers.cookie || '';
@@ -50,7 +50,7 @@ key_findings — 3-5 Einträge. Mix aus:
   • Risiken / Widersprüche im Profil
 title = 2-4 Wörter. text = 1-2 Sätze, spezifisch, nicht generisch.
 
-daily_inspirations — GENAU 30 Einträge. Jeder ein heute-umsetzbarer Mini-Impuls, max. 140 Zeichen. Auf Budget + Zeit des Users zugeschnitten (kein "10k in Ads", wenn Budget klein ist). Keine Plattitüden ("Poste mehr auf LinkedIn!"). Konkret: "Schreib 3 deiner lautesten Kunden eine persönliche Frage mit Bezug auf ihren letzten Post — heute Nachmittag."
+daily_inspirations — GENAU 14 Einträge (zwei Wochen). Jeder ein heute-umsetzbarer Mini-Impuls, max. 140 Zeichen. Auf Budget + Zeit des Users zugeschnitten (kein "10k in Ads", wenn Budget klein ist). Keine Plattitüden ("Poste mehr auf LinkedIn!"). Konkret: "Schreib 3 deiner lautesten Kunden eine persönliche Frage mit Bezug auf ihren letzten Post — heute Nachmittag."
 
 Niemals dreimal dieselbe Idee in verschiedenen Worten. Variation über Kanäle, Zeitrahmen, Aufwand.`;
 

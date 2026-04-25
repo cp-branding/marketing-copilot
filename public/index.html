@@ -2124,6 +2124,8 @@ NACH ANTWORT 10 — liefere **ohne weitere Frage** folgende Ausgabe:
 
 Kurzes Feedback (1–2 Sätze): was du aus dem Check-In mitnimmst.
 
+Falls Budget oder Zeit auffällig sind (sehr klein, sehr groß, "unklar"): EIN zusätzlicher Satz Ressourcen-Interpretation als Brücke zu den Folge-Modi — z.B. "Mit dem Mini-Budget startest du klug bei Organic + Owned." / "Bei deinen 2h/Woche bekommt der Plan einen Solo-Fokus mit Delegations-Optionen." / "Dein Budget gibt dir Spielraum für Paid-Tests neben dem Aufbau." Nur wenn die Daten das hergeben, nicht erzwingen.
+
 Dann **exakt** dieses Profil-Block (maschinell geparst — Format streng einhalten):
 
 <<<PROFIL>>>
@@ -2155,6 +2157,8 @@ const PROMPT_QUICK = `Du bist Constantins Marketing-Assistant. Dein Stil: direkt
 ZWISCHEN FRAGEN: Kein "Okay" / "Spannend" / "Verstehe" / "Danke für deine Antwort". Entweder (a) ein konkretes Detail aus der Antwort spiegeln (max. 12 Wörter, 1 Satz) oder (b) direkt die nächste Frage stellen. Niemals leeres Echo.
 
 WENN DER USER AUSSTEIGT: Bei "weiß nicht" / "keine Ahnung" / "passt nicht" → genau EINE Rückfrage die anders andockt, dann weiter. Niemals dreimal dasselbe fragen. Wenn die Info trotzdem fehlt — in der Empfehlung ehrlich benennen ("Da habe ich zu wenig — aus dem Rest tippe ich auf X, verifizier das wenn du kannst"), nicht raten und nicht nachbohren.
+
+FALLBACK-FRAMES bei 2× vager Antwort: Wenn der User zwei Turns hintereinander zu generisch/floskelhaft antwortet ("kommt drauf an", "eigentlich verschiedenes", "mehr Kunden", "weiß nicht genau") → STATT weiterer Nachfrage drei konkrete Szenario-Frames anbieten. Format: "Drei Stellen wo es typisch klemmt: A) [konkretes Szenario 1] · B) [konkretes Szenario 2] · C) [konkretes Szenario 3]. Welches trifft am ehesten?" Dann auf User-Wahl reagieren. Vorteil: User entscheidet selbst statt im Vagen zu kreisen — Du bekommst nutzbare Information ohne weiteren Fragen-Loop.
 
 **KONTEXT-REGEL (Priorität vor allem anderen):** Wenn oberhalb dieses Prompts ein Block "KONTEXT über den Nutzer" steht, ignorierst du die generischen Opener-Beispiele weiter unten ("Moin, was ist gerade dein größtes Marketing-Ding?" etc.). Stattdessen öffnest du spezifisch: kurze Begrüßung + 1-2 Sätze Spiegelung der Situation aus dem Kontext + eine Frage die nur zu diesem Menschen passt. Nie Fragen wiederholen deren Antwort schon im Kontext steht. Das ist das Gegenteil von feinfühlig.
 
@@ -2259,6 +2263,15 @@ Wenn ein Modul durchs Profil schon abgedeckt ist → skip ohne Bestätigung.
 
 Mehrere Module pro Turn fertig? Mehrere Marker, jeder in eigener Zeile, alle ganz am Ende der Antwort, NACH allem anderen außer dem REPLIES-Block. (Frontend parst und entfernt sie — User sieht sie nicht.)
 
+**PHASE-Marker (Pflicht):** Beim ÜBERGANG in eine neue Phase emittierst du EINMALIG am Ende der Antwort:
+
+<<<PHASE>>>scan<<<END>>>     ← in der ersten Nachricht (Beginn Scan)
+<<<PHASE>>>select<<<END>>>   ← wenn du die Hebel-Auswahl ankündigst
+<<<PHASE>>>dive<<<END>>>     ← in der ersten Dive-Frage
+<<<PHASE>>>plan<<<END>>>     ← direkt vor / mit dem Plan-Output
+
+Reihenfolge: scan → select → dive → plan. Niemals zurückspringen. (Frontend nutzt den Marker für die Phasen-Anzeige.)
+
 ZEIT-COMMIT IM ERSTEN TURN: "Ich tast die 12 Module einmal kurz an — wo's relevant ist tauchen wir tiefer rein, dann baue ich den Plan. Etwa 20-30 Minuten."
 
 CHECK-IN nach jedem 4. abgeschlossenen Modul (kurz, 1 Satz): "Vier durch, acht noch — weiter?" / "Halbzeit Scan." Nur ein Satz, dann nächste Frage.
@@ -2279,6 +2292,8 @@ Begründe pro Hebel in 1 Satz warum genau dieser. Dann direkt weiter mit Phase 3
 PHASE 3 — DIVE (4-6 Fragen pro gewähltem Hebel)
 ─────────────────────────────────────────────────────
 Pro Hebel: 4-6 konkrete Tiefen-Fragen. Echte Beispiele, Zahlen, Hindernisse. Nicht abstrakt. Stell EINE Frage pro Turn.
+
+EMPATHY-MIKRO-PAUSE: Nach 2-3 Tiefen-Fragen am Stück eine 1-Satz-Mikro-Validierung einbauen, ohne den Fluss zu brechen ("Konkret. Weiter." / "Das sind harte Zahlen — gut, dass du das durchblickst." / "Sauberer Datenpunkt."). Hält den User über die ~20-Min-Build-Strecke im Spiel. Nicht inflationär, nicht jeder Turn — nur dort wo wirklich was Substantielles geliefert wurde.
 
 Wenn DIVE für einen Hebel abgeschlossen ist (genug Substanz für Maßnahmen), emittiere am Ende der Antwort die Marker erneut für die zugehörige Modul-ID. (Die ID kann sowohl in Scan als auch Dive abgeschlossen werden — das Frontend de-dupliziert.)
 
@@ -2372,6 +2387,8 @@ STIL (Biss durch Präzision, nicht durch Umgangston):
 
 ZWISCHEN FRAGEN: Kein "Okay" / "Verstehe" / "Guter Punkt" / "Danke für die Offenheit". Wenn überhaupt was zwischen Fragen kommt: ein Satz der zeigt **was du notiert hast** oder wo du Widerspruch erkennst. Sonst direkt die nächste Frage. Weichspülende Echos zerstören den Modus sofort.
 
+PROACTIVE RHETORIK-CHECK (nach JEDEM User-Turn, vor der nächsten Frage): Scanne die letzte User-Antwort kurz auf typische Abwehr-Phrasen — "das verstehst du nicht", "jeder macht das anders", "so einfach ist das nicht", "kommt halt drauf an", "das ist zu komplex für eine Frage", "musste man da gewesen sein". Erkennst du eine ohne dahinterliegende Substanz: KEINE neue Frage, sondern ein Satz: "Das ist Abwehr, kein Argument. Konkrete Zahl oder Fall — sonst ist DAS der Weak Spot." Dann erst weiter mit der nächsten Frage. Das ist ergänzend zu Stufe-3-Eskalation und zur "Rhetorik-Gegenwehr"-Reaktion oben — proaktiv statt reaktiv.
+
 WENN DER USER AUSSTEIGT: "Weiß nicht" / "keine Ahnung" ist hier **nicht** harmlos — das ist oft selbst der Weak Spot. Benenn es direkt ("Du weißt deine Zielgruppe nicht — das ist hart, aber notiert.") ODER dock anders an ("Dann frag ich konkret: wer war dein letzter Kunde und warum hat er gekauft?"). Am Ende fließt jede Lücke ins Urteil ein — du gönnst dem User das Wegducken nicht.
 
 ADAPTIVE STOP-RULE (sehr wichtig):
@@ -2434,6 +2451,17 @@ function buildSystemPrompt(mode, answerCount, profile = null) {
   }
   if (mode === 'onboarding' && answerCount >= 10) {
     prompt += `\n\nSYSTEM-NOTIZ: Der Nutzer hat jetzt **10 Fragen beantwortet**. Du MUSST jetzt den <<<PROFIL>>>-Block produzieren — keine weitere Frage, egal was. Format exakt einhalten.`;
+  }
+
+  // Build-Modus: Safety-Reminder für MODULE_DONE/PHASE wenn Counter ohne Progress
+  if (mode === 'holistic' && typeof __completedModules !== 'undefined') {
+    const done = __completedModules?.size || 0;
+    const phase = __currentPhase || null;
+    if (answerCount >= 4 && done === 0) {
+      prompt += `\n\nSYSTEM-NOTIZ (Markers): Der User hat ${answerCount} Antworten gegeben aber im Frontend ist noch KEIN Modul als abgeschlossen markiert. Prüfe: hast du die <<<MODULE_DONE>>>-Marker emittiert? Hast du den initialen <<<PHASE>>>scan<<<END>>>-Marker gesetzt? Bei der nächsten Antwort die ein Modul abschließt: Marker streng wie spezifiziert anhängen, am ENDE, in eigener Zeile.`;
+    } else if (!phase && answerCount >= 1) {
+      prompt += `\n\nSYSTEM-NOTIZ: PHASE-Marker fehlt noch. Setze beim nächsten Übergang oder spätestens jetzt <<<PHASE>>>scan<<<END>>> (oder die aktuelle Phase) am Ende der Antwort.`;
+    }
   }
 
   // REPLIES-Block-Instruktion für alle Modi (wird vom Frontend geparst)
@@ -2678,6 +2706,7 @@ function goBack() {
   messages = [];
   userAnswerCount = 0;
   __completedModules = new Set();
+  __currentPhase = null;
   if (typeof clearReplies === 'function') clearReplies();
   updateEnergyBars();
   if (typeof loadProfileSummary === 'function') loadProfileSummary();
@@ -2762,11 +2791,14 @@ function extractModuleDone(text) {
 
 function rebuildCompletedModules() {
   __completedModules = new Set();
+  __currentPhase = null;
   if (currentMode !== 'holistic') return;
   for (const m of messages) {
     if (m.role !== 'assistant') continue;
-    const r = extractModuleDone(m.content || '');
-    r.ids.forEach(id => __completedModules.add(id));
+    const md = extractModuleDone(m.content || '');
+    md.ids.forEach(id => __completedModules.add(id));
+    const ph = extractPhase(m.content || '');
+    if (ph.phase) __currentPhase = ph.phase;
   }
 }
 
@@ -2782,22 +2814,73 @@ function showModuleDoneToast(moduleId) {
   chat.scrollTop = chat.scrollHeight;
 }
 
+function parseRepliesPayload(raw) {
+  if (!raw) return null;
+  const trimmed = String(raw).trim()
+    .replace(/^[`\s]+|[`\s]+$/g, '')
+    .replace(/^json\s*\n?/i, '');
+  // 1. Strenger JSON-Parse
+  try {
+    const parsed = JSON.parse(trimmed);
+    if (Array.isArray(parsed)) return parsed.map(s => String(s || '').trim()).filter(Boolean);
+  } catch {}
+  // 2. Smart-Quotes normalisieren, dann nochmal JSON
+  const norm = trimmed
+    .replace(/[\u2018\u2019\u201A\u2032]/g, "'")
+    .replace(/[\u201C\u201D\u201E\u2033]/g, '"')
+    .replace(/,\s*\]/g, ']'); // trailing comma
+  try {
+    const parsed = JSON.parse(norm);
+    if (Array.isArray(parsed)) return parsed.map(s => String(s || '').trim()).filter(Boolean);
+  } catch {}
+  // 3. Fallback: alle Strings zwischen Anführungszeichen extrahieren
+  const matches = [...norm.matchAll(/"([^"\n]{2,140})"/g)].map(m => m[1].trim());
+  if (matches.length >= 2) return matches.slice(0, 3);
+  // 4. Letzter Fallback: Split per | oder ; oder Newline
+  const split = norm.replace(/^\[|\]$/g, '').split(/[|;\n]+/).map(s => s.replace(/^["'\s,]+|["'\s,]+$/g, '').trim()).filter(Boolean);
+  if (split.length >= 2) return split.slice(0, 3);
+  return null;
+}
+
 function extractReplies(text) {
   if (!text) return { cleaned: text, replies: null };
-  const re = /\*?\*?<<<\s*REPLIES\s*>>>\*?\*?([\s\S]*?)\*?\*?<<<\s*END\s*>>>\*?\*?/i;
-  const m = text.match(re);
-  if (!m) return { cleaned: text, replies: null };
-  const cleaned = text.replace(re, '').trim();
-  let replies = null;
-  try {
-    const raw = m[1].trim();
-    const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed)) {
-      replies = parsed.map(s => String(s || '').trim()).filter(Boolean).slice(0, 3);
-      if (replies.length === 0) replies = null;
+  // Tolerant: optional **, optional Whitespace, beide Marker; auch wenn END fehlt → bis Textende
+  const reFull = /\*?\*?<<<\s*REPLIES\s*>>>\*?\*?([\s\S]*?)\*?\*?<<<\s*END\s*>>>\*?\*?/i;
+  let m = text.match(reFull);
+  let cleaned = text;
+  let raw = null;
+  if (m) {
+    raw = m[1];
+    cleaned = text.replace(reFull, '').trim();
+  } else {
+    // Fallback: Marker fehlt am Ende → ab REPLIES bis Textende
+    const reOpen = /\*?\*?<<<\s*REPLIES\s*>>>\*?\*?([\s\S]*)$/i;
+    m = text.match(reOpen);
+    if (m) {
+      raw = m[1];
+      cleaned = text.replace(reOpen, '').trim();
     }
-  } catch { replies = null; }
+  }
+  if (raw === null) return { cleaned: text, replies: null };
+  let replies = parseRepliesPayload(raw);
+  if (replies && replies.length) {
+    replies = replies.map(s => s.slice(0, 100)).slice(0, 3);
+    if (replies.length === 0) replies = null;
+  } else {
+    replies = null;
+  }
   return { cleaned, replies };
+}
+
+// ─── BUILD-MODUS: PHASE-Marker (scan/select/dive/plan) ──────────────────────
+let __currentPhase = null;
+
+function extractPhase(text) {
+  if (!text) return { cleaned: text, phase: null };
+  const re = /\*?\*?<<<\s*PHASE\s*>>>\*?\*?\s*(scan|select|dive|plan)\s*\*?\*?<<<\s*END\s*>>>\*?\*?/gi;
+  let last = null;
+  const cleaned = text.replace(re, (_, p) => { last = p.toLowerCase(); return ''; });
+  return { cleaned: cleaned.replace(/\n{3,}/g, '\n\n').trim(), phase: last };
 }
 
 function addMsg(role, text, isRestore = false) {
@@ -2823,7 +2906,7 @@ function addMsg(role, text, isRestore = false) {
     visibleText = r.cleaned;
     extractedReplies = r.replies;
 
-    // MODULE_DONE-Marker für Build-Mode extrahieren
+    // MODULE_DONE- und PHASE-Marker für Build-Mode extrahieren
     if (currentMode === 'holistic') {
       const md = extractModuleDone(visibleText);
       visibleText = md.cleaned;
@@ -2833,6 +2916,9 @@ function addMsg(role, text, isRestore = false) {
           newModuleIds.push(id);
         }
       });
+      const ph = extractPhase(visibleText);
+      visibleText = ph.cleaned;
+      if (ph.phase) __currentPhase = ph.phase;
     }
 
     if (currentMode === 'onboarding') {
@@ -3043,8 +3129,13 @@ function updateCounter() {
   if (currentMode === 'holistic') {
     const done = __completedModules.size;
     const total = HOLISTIC_MODULES.length;
-    if (done >= total) pill.textContent = `Modul ${done}/${total} · Plan`;
-    else pill.textContent = `Modul ${done}/${total} · ${done === 0 ? 'Start' : (done < Math.ceil(total/2) ? 'Scan' : 'Dive')}`;
+    let phaseLabel;
+    if (__currentPhase === 'plan')        phaseLabel = 'Plan';
+    else if (__currentPhase === 'dive')   phaseLabel = 'Dive';
+    else if (__currentPhase === 'select') phaseLabel = 'Select';
+    else if (__currentPhase === 'scan')   phaseLabel = 'Scan';
+    else                                  phaseLabel = done === 0 ? 'Start' : 'Scan';
+    pill.textContent = `Modul ${done}/${total} · ${phaseLabel}`;
   } else if (currentMode === 'quick') {
     pill.textContent = `Frage ${Math.min(userAnswerCount + 1, meta.maxQuestions)} von max. ${meta.maxQuestions}`;
   } else {

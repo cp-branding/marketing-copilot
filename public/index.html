@@ -1299,85 +1299,137 @@ textarea#input::placeholder { color: #9AA3AC; }
   text-transform: uppercase;
 }
 
-/* ─── QUICK REPLY CHIPS (Pokémon-Menü) ───────────────────── */
+/* ─── QUICK REPLY CHIPS — Pokémon-Battle-Menu Style ──────── */
 .chip-zone {
   display: none;
-  flex-direction: column;
-  gap: 8px;
-  padding: 10px 16px 6px;
-  border-top: 1px solid rgba(255, 145, 77, 0.18);
-  background: rgba(10, 14, 22, 0.72);
-  backdrop-filter: blur(4px);
+  margin: 10px 12px 6px;
+  padding: 0;
+  background: var(--cp-navy-deep, #0E1320);
+  border: 4px solid var(--cp-orange);
+  border-radius: 0;
+  box-shadow: 4px 4px 0 0 rgba(0,0,0,0.45);
   animation: cpSlideUp 0.22s ease-out;
+  position: relative;
 }
-.chip-zone.on { display: flex; }
+.chip-zone.on { display: block; }
+.chip-zone::before, .chip-zone::after {
+  content: '';
+  position: absolute;
+  width: 14px; height: 14px;
+  background: var(--cp-orange);
+}
+.chip-zone::before { top: -4px; left: -4px; clip-path: polygon(0 0, 100% 0, 100% 30%, 30% 30%, 30% 100%, 0 100%); }
+.chip-zone::after  { bottom: -4px; right: -4px; clip-path: polygon(0 70%, 70% 70%, 70% 0, 100% 0, 100% 100%, 0 100%); }
 @keyframes cpSlideUp {
   from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 .chip-zone__label {
+  display: block;
+  padding: 6px 14px 4px;
   font-family: var(--cp-font-mono);
-  font-size: 0.68rem;
-  letter-spacing: 2px;
-  color: #8A95A1;
+  font-size: 0.7rem;
+  letter-spacing: 3px;
+  color: var(--cp-orange);
   text-transform: uppercase;
-  padding-left: 2px;
+  border-bottom: 2px solid rgba(255, 145, 77, 0.3);
 }
 .chip-zone__row {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 8px;
-}
-@media (min-width: 640px) {
-  .chip-zone__row { grid-template-columns: repeat(3, 1fr); }
+  display: flex;
+  flex-direction: column;
+  gap: 0;
 }
 .chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   text-align: left;
-  padding: 10px 14px;
-  background: rgba(255, 145, 77, 0.08);
+  padding: 12px 16px;
+  background: transparent;
   color: #F3F5F8;
-  border: 1.5px solid rgba(255, 145, 77, 0.45);
-  border-radius: 6px;
+  border: none;
+  border-bottom: 1px solid rgba(255, 145, 77, 0.18);
+  border-radius: 0;
   font-family: var(--cp-font-mono);
-  font-size: 0.88rem;
-  line-height: 1.4;
+  font-size: 0.95rem;
+  line-height: 1.35;
   cursor: pointer;
-  transition: background 0.12s ease, border-color 0.12s ease, transform 0.1s ease;
+  transition: background 0.08s linear, color 0.08s linear;
+  width: 100%;
+  position: relative;
+}
+.chip::before {
+  content: '▶';
+  display: inline-block;
+  color: rgba(255, 145, 77, 0.35);
+  font-size: 0.85em;
+  width: 14px;
+  flex-shrink: 0;
+  transition: color 0.08s linear, transform 0.08s linear;
 }
 .chip:hover, .chip:focus-visible {
-  background: rgba(255, 145, 77, 0.2);
-  border-color: var(--cp-orange);
+  background: var(--cp-orange);
+  color: var(--cp-navy-deep, #0E1320);
   outline: none;
 }
-.chip:active { transform: translateY(1px); }
+.chip:hover::before, .chip:focus-visible::before {
+  color: var(--cp-navy-deep, #0E1320);
+  transform: translateX(2px);
+  animation: cpBlinkPointer 0.5s steps(2, end) infinite;
+}
+@keyframes cpBlinkPointer {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+.chip:last-of-type { border-bottom: none; }
+.chip:active { background: rgba(255, 145, 77, 0.85); }
 .chip-zone__custom {
   display: flex;
-  justify-content: flex-end;
+  justify-content: stretch;
+  border-top: 2px solid rgba(255, 145, 77, 0.3);
+  background: rgba(255, 145, 77, 0.04);
 }
 .chip-custom {
-  padding: 8px 14px;
+  flex: 1;
+  padding: 10px 16px;
   background: transparent;
   color: var(--cp-orange);
-  border: 1.5px dashed rgba(255, 145, 77, 0.6);
-  border-radius: 6px;
+  border: none;
+  border-radius: 0;
   font-family: var(--cp-font-mono);
   font-size: 0.78rem;
-  letter-spacing: 1.5px;
+  letter-spacing: 2px;
   text-transform: uppercase;
   cursor: pointer;
-  transition: background 0.12s ease, border-style 0.12s ease;
+  transition: background 0.08s linear, color 0.08s linear;
+  text-align: center;
 }
 .chip-custom:hover, .chip-custom:focus-visible {
-  background: rgba(255, 145, 77, 0.1);
-  border-style: solid;
+  background: var(--cp-orange);
+  color: var(--cp-navy-deep, #0E1320);
   outline: none;
 }
-#chatView.mode-roast .chip { border-color: rgba(91, 163, 208, 0.5); background: rgba(91, 163, 208, 0.08); }
-#chatView.mode-roast .chip:hover { background: rgba(91, 163, 208, 0.2); border-color: var(--cp-cool, #5BA3D0); }
-#chatView.mode-roast .chip-custom { color: var(--cp-cool, #5BA3D0); border-color: rgba(91, 163, 208, 0.55); }
-#chatView.mode-fix .chip { border-color: rgba(255, 107, 107, 0.5); background: rgba(255, 107, 107, 0.08); }
-#chatView.mode-fix .chip:hover { background: rgba(255, 107, 107, 0.2); border-color: var(--cp-danger, #FF6B6B); }
-#chatView.mode-fix .chip-custom { color: var(--cp-danger, #FF6B6B); border-color: rgba(255, 107, 107, 0.55); }
+/* Mode-Tinting */
+#chatView.mode-roast .chip-zone { border-color: var(--cp-cool, #5BA3D0); }
+#chatView.mode-roast .chip-zone::before, #chatView.mode-roast .chip-zone::after { background: var(--cp-cool, #5BA3D0); }
+#chatView.mode-roast .chip-zone__label { color: var(--cp-cool, #5BA3D0); border-bottom-color: rgba(91, 163, 208, 0.3); }
+#chatView.mode-roast .chip { border-bottom-color: rgba(91, 163, 208, 0.18); }
+#chatView.mode-roast .chip::before { color: rgba(91, 163, 208, 0.4); }
+#chatView.mode-roast .chip:hover, #chatView.mode-roast .chip:focus-visible { background: var(--cp-cool, #5BA3D0); color: var(--cp-navy-deep, #0E1320); }
+#chatView.mode-roast .chip:hover::before { color: var(--cp-navy-deep, #0E1320); }
+#chatView.mode-roast .chip-zone__custom { border-top-color: rgba(91, 163, 208, 0.3); background: rgba(91, 163, 208, 0.04); }
+#chatView.mode-roast .chip-custom { color: var(--cp-cool, #5BA3D0); }
+#chatView.mode-roast .chip-custom:hover { background: var(--cp-cool, #5BA3D0); color: var(--cp-navy-deep, #0E1320); }
+#chatView.mode-fix .chip-zone { border-color: var(--cp-danger, #FF6B6B); }
+#chatView.mode-fix .chip-zone::before, #chatView.mode-fix .chip-zone::after { background: var(--cp-danger, #FF6B6B); }
+#chatView.mode-fix .chip-zone__label { color: var(--cp-danger, #FF6B6B); border-bottom-color: rgba(255, 107, 107, 0.3); }
+#chatView.mode-fix .chip { border-bottom-color: rgba(255, 107, 107, 0.18); }
+#chatView.mode-fix .chip::before { color: rgba(255, 107, 107, 0.4); }
+#chatView.mode-fix .chip:hover, #chatView.mode-fix .chip:focus-visible { background: var(--cp-danger, #FF6B6B); color: var(--cp-navy-deep, #0E1320); }
+#chatView.mode-fix .chip:hover::before { color: var(--cp-navy-deep, #0E1320); }
+#chatView.mode-fix .chip-zone__custom { border-top-color: rgba(255, 107, 107, 0.3); background: rgba(255, 107, 107, 0.04); }
+#chatView.mode-fix .chip-custom { color: var(--cp-danger, #FF6B6B); }
+#chatView.mode-fix .chip-custom:hover { background: var(--cp-danger, #FF6B6B); color: var(--cp-navy-deep, #0E1320); }
 
 /* ─── BUILD-MODUS: Modul-Progress (12 Pips mit Tooltip-Label) ──── */
 .progress-wrap.module-progress {
@@ -1638,11 +1690,45 @@ function maybeStartOnboarding() {
 }
 
 // ─── PROFILE SUMMARY (Dashboard + Show Summary + Daily Inspiration) ──────────
-// GET  /api/profile-summary → cached summary (oder null + stale-Flag)
-// POST /api/profile-summary → (Re-)Generierung via LLM, Cache-Update in Supabase
+// Specs werden SOFORT aus dem PROFIL-Block geparst → Dashboard rendert in <100ms.
+// Summary/Findings/Inspirations laufen im HINTERGRUND via /api/profile-summary —
+// Buttons sind dimmed/disabled bis Background-Call durch ist.
 let __summaryCache = null;
+let __summaryLoading = false;
 
 function getSummaryCache() { return __summaryCache; }
+
+// Clientseitiger Specs-Parser — extrahiert die wichtigsten Felder direkt aus profile_text.
+// Reihenfolge bestimmt Anzeige-Order. "..."- oder "unklar"-Werte werden geskippt.
+const SPECS_FIELDS = [
+  { key: 'Branche',         label: 'Branche' },
+  { key: 'Angebot',         label: 'Angebot' },
+  { key: 'Zielgruppe',      label: 'Zielgruppe' },
+  { key: 'Teamgröße',       label: 'Team' },
+  { key: 'Aktive Kanäle',   label: 'Kanäle' },
+  { key: 'Marketing-Level', label: 'Level' },
+  { key: 'Aktueller Pain',  label: 'Pain' },
+  { key: 'Budget',          label: 'Budget' },
+  { key: 'Zeit',            label: 'Zeit' },
+];
+
+function parseProfileSpecs(profileText) {
+  if (!profileText) return [];
+  const out = [];
+  for (const f of SPECS_FIELDS) {
+    const re = new RegExp('^\\s*' + f.key.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&') + ':\\s*(.+?)\\s*$', 'mi');
+    const m = profileText.match(re);
+    if (!m) continue;
+    let val = m[1].trim();
+    // Bei "Marketing-Level: Profi — (Begründung)" nur den Wert vor " — " nehmen
+    val = val.replace(/\s+—\s+\(.+\)\s*$/, '').replace(/\s+—\s+.+/, '');
+    if (!val || val === '...' || /^unklar$/i.test(val)) continue;
+    if (val.length > 80) val = val.slice(0, 78) + '…';
+    out.push(`${f.label}: ${val}`);
+    if (out.length >= 7) break;
+  }
+  return out;
+}
 
 async function loadProfileSummary() {
   const dashEl   = document.getElementById('profileDashboard');
@@ -1650,13 +1736,39 @@ async function loadProfileSummary() {
   const specsEl  = document.getElementById('dashSpecs');
   const actionsEl= document.getElementById('dashActions');
   const header   = document.querySelector('.select-header');
-  if (!dashEl || !getProfile()) return;
+  const profileText = getProfile();
+  if (!dashEl || !profileText) return;
+
+  // STAGE 1 (sofort): Specs aus PROFIL-Block parsen + Dashboard rendern
+  const localSpecs = parseProfileSpecs(profileText);
+  if (!localSpecs.length) {
+    // Profil zu knapp/kaputt → Fallback Hero
+    if (typeof renderHeroLine === 'function') renderHeroLine();
+    return;
+  }
 
   dashEl.classList.add('on');
   header?.classList.add('has-dashboard');
-  if (statusEl) { statusEl.textContent = '◍ LADE PROFIL'; statusEl.classList.remove('ok'); }
-  if (specsEl)  { specsEl.innerHTML = '<li class="is-loading">scanne …</li>'; }
-  if (actionsEl) actionsEl.style.display = 'none';
+  if (statusEl) {
+    statusEl.textContent = '✓ PROFIL ERKANNT';
+    statusEl.classList.add('ok');
+  }
+  if (specsEl) {
+    specsEl.innerHTML = '';
+    localSpecs.forEach(s => {
+      const li = document.createElement('li');
+      li.textContent = s;
+      specsEl.appendChild(li);
+    });
+  }
+  if (actionsEl) {
+    actionsEl.style.display = 'flex';
+    setButtonsLoadingState(true);
+  }
+
+  // STAGE 2 (Hintergrund): LLM-Summary holen/generieren
+  if (__summaryLoading) return;
+  __summaryLoading = true;
 
   try {
     let res = await fetch('/api/profile-summary', { credentials: 'include' });
@@ -1664,7 +1776,6 @@ async function loadProfileSummary() {
     let payload = await res.json();
 
     if (!payload.summary || payload.stale) {
-      if (statusEl) statusEl.textContent = '◍ ANALYSIERE';
       res = await fetch('/api/profile-summary', {
         method: 'POST',
         credentials: 'include',
@@ -1675,39 +1786,61 @@ async function loadProfileSummary() {
     }
 
     __summaryCache = payload.summary;
-    renderDashboard(payload.summary);
+    // Falls LLM bessere/spezifischere Specs liefert: ersetzen
+    if (payload.summary && Array.isArray(payload.summary.specs) && payload.summary.specs.length) {
+      replaceSpecs(payload.summary.specs);
+    }
+    setButtonsLoadingState(false);
   } catch (err) {
     console.warn('[profile-summary]', err);
-    // Fallback: Dashboard ausblenden, alte Typewriter-Hero zeigen
-    dashEl.classList.remove('on');
-    header?.classList.remove('has-dashboard');
-    if (typeof renderHeroLine === 'function') renderHeroLine();
+    // Buttons bleiben dimmed → Klick zeigt Retry-Modal
+    setButtonsLoadingState(false, true);
+  } finally {
+    __summaryLoading = false;
   }
 }
 
-function renderDashboard(summary) {
-  const statusEl = document.getElementById('dashStatus');
-  const specsEl  = document.getElementById('dashSpecs');
-  const actionsEl= document.getElementById('dashActions');
-  if (!summary || !statusEl || !specsEl || !actionsEl) return;
-
-  statusEl.textContent = '✓ PROFIL ERKANNT';
-  statusEl.classList.add('ok');
-
+function replaceSpecs(specs) {
+  const specsEl = document.getElementById('dashSpecs');
+  if (!specsEl) return;
   specsEl.innerHTML = '';
-  const specs = Array.isArray(summary.specs) ? summary.specs : [];
-  if (!specs.length) {
+  specs.forEach(s => {
     const li = document.createElement('li');
-    li.textContent = '(keine Specs — Profil zu knapp)';
+    li.textContent = String(s || '').slice(0, 140);
     specsEl.appendChild(li);
+  });
+}
+
+function setButtonsLoadingState(loading, errored = false) {
+  const sumBtn = document.getElementById('btnShowSummary');
+  const dailyBtn = document.getElementById('btnDailyInspiration');
+  if (!sumBtn || !dailyBtn) return;
+  if (loading) {
+    sumBtn.disabled = true;  sumBtn.style.opacity = '0.5';   sumBtn.style.cursor = 'wait';
+    dailyBtn.disabled = true; dailyBtn.style.opacity = '0.5'; dailyBtn.style.cursor = 'wait';
+    sumBtn.textContent   = 'Show Summary · lädt…';
+    dailyBtn.textContent = 'Daily Inspiration · lädt…';
+  } else if (errored) {
+    sumBtn.disabled = false;  sumBtn.style.opacity = '0.7';   sumBtn.style.cursor = 'pointer';
+    dailyBtn.disabled = false; dailyBtn.style.opacity = '0.7'; dailyBtn.style.cursor = 'pointer';
+    sumBtn.textContent   = 'Show Summary · Retry';
+    dailyBtn.textContent = 'Daily Inspiration · Retry';
   } else {
-    specs.forEach(s => {
-      const li = document.createElement('li');
-      li.textContent = String(s || '').slice(0, 140);
-      specsEl.appendChild(li);
-    });
+    sumBtn.disabled = false;  sumBtn.style.opacity = '';      sumBtn.style.cursor = '';
+    dailyBtn.disabled = false; dailyBtn.style.opacity = '';   dailyBtn.style.cursor = '';
+    sumBtn.textContent   = 'Show Summary';
+    dailyBtn.textContent = 'Daily Inspiration';
   }
-  actionsEl.style.display = 'flex';
+}
+
+// Behalt für Backward-Compat (z.B. wenn anderer Code renderDashboard() ruft)
+function renderDashboard(summary) {
+  if (!summary) return;
+  __summaryCache = summary;
+  const statusEl = document.getElementById('dashStatus');
+  if (statusEl) { statusEl.textContent = '✓ PROFIL ERKANNT'; statusEl.classList.add('ok'); }
+  if (Array.isArray(summary.specs) && summary.specs.length) replaceSpecs(summary.specs);
+  setButtonsLoadingState(false);
 }
 
 // ─── MODAL (Show Summary / Daily Inspiration) ────────────────────────────────
@@ -1750,9 +1883,11 @@ function dayOfYear(d = new Date()) {
 function showSummaryModal() {
   const s = getSummaryCache();
   if (!s) {
+    // Wenn nicht da: nochmal versuchen im Hintergrund
+    if (!__summaryLoading) loadProfileSummary();
     openCpModal({
-      tag: 'SUMMARY', title: 'Noch nicht bereit',
-      bodyHtml: '<p>Die Zusammenfassung lädt noch oder konnte nicht generiert werden. Seite neu laden, dann nochmal probieren.</p>',
+      tag: 'SUMMARY', title: 'Lädt noch …',
+      bodyHtml: '<p>Die Zusammenfassung wird gerade generiert. Klick in ein paar Sekunden nochmal — dann ist sie da.</p>',
     });
     return;
   }
@@ -1775,9 +1910,10 @@ function showDailyInspirationModal() {
   const s = getSummaryCache();
   const list = Array.isArray(s?.daily_inspirations) ? s.daily_inspirations : [];
   if (!list.length) {
+    if (!__summaryLoading) loadProfileSummary();
     openCpModal({
-      tag: 'DAILY', title: 'Noch nicht bereit',
-      bodyHtml: '<p>Für heute ist noch keine Inspiration da. Profil lädt — in einem Moment nochmal.</p>',
+      tag: 'DAILY', title: 'Lädt noch …',
+      bodyHtml: '<p>Heute-Inspiration wird gerade generiert. Klick in ein paar Sekunden nochmal — dann ist sie da.</p>',
     });
     return;
   }
@@ -2216,7 +2352,7 @@ const HOLISTIC_MODULE_IDS = HOLISTIC_MODULES.map(m => m.id);
 
 const PROMPT_HOLISTIC = `Du bist Constantins Marketing-Assistant für die **holistische Build-Diagnose**. Dein Stil: direkt, warm, intelligent. Trockener Humor erlaubt — nie albern, nie Motivationssprache. Keine Füllwörter ("halt", "nämlich", "guck mal"). Keine Umgangsgrüße ("Moin", "Puh"). Englische Begriffe nur wo sie präziser sind als das deutsche Wort. Kein Corporate-Bla, keine Hochglanz-Zusammenfassungen — herleiten statt auflisten.
 
-**KONTEXT-REGEL (Priorität vor allem anderen):** Wenn oberhalb dieses Prompts ein Block "KONTEXT über den Nutzer" steht, öffnest du spezifisch — kurze Begrüßung + 1-2 Sätze Spiegelung der Situation + **ein Satz wie viele der 12 Module durch das Profil schon abgedeckt sind** (z.B. "Etwa 3 der 12 Module kenne ich aus deinem Profil — bleiben ~9 für uns."). Wenn ein Modul durchs Profil bereits abgedeckt ist, überspringst du den Scan dafür **ohne Bestätigung** und emittierst direkt die MODULE_DONE-Markierung dafür (siehe unten). Wiederhol nie Fragen deren Antwort schon im Kontext steht.
+**KONTEXT-REGEL (Priorität vor allem anderen):** Wenn oberhalb dieses Prompts ein Block "KONTEXT über den Nutzer" steht, öffnest du spezifisch — kurze Begrüßung + 1-2 Sätze Spiegelung der Situation. Der Profil-Kontext informiert deine Fragen, **ersetzt sie aber NICHT**. Du stellst trotzdem mind. 1 Scan-Frage pro Modul — nutz den Kontext um die Frage spezifischer und schärfer zu machen, nicht um sie zu skippen. Wiederhol nie eine Frage 1:1 deren Antwort schon im Kontext steht — aber STELL eine Anschlussfrage in dem Modul, die auf dem Kontext aufbaut ("Du sagst Hauptkanal LinkedIn — performt das, wo's klemmt?").
 
 ZWISCHEN FRAGEN: Kein "Okay" / "Spannend" / "Verstehe" / "Danke für die Antwort". Entweder (a) ein konkretes Detail spiegeln (max. 12 Wörter, 1 Satz) oder (b) direkt die nächste Frage. Niemals leeres Echo.
 
@@ -2245,23 +2381,25 @@ m9_media       — Mediengestaltung: DIY vs. KI vs. Profi, Nutzungsrechte, Websi
 m10_b2b        — B2B-Spezifika: Sales Cycle, Buying Committee, LinkedIn ABM, Thought Leadership
 m11_b2c        — B2C-Spezifika: Impuls vs. Considered, E-Commerce Funnel, CRO, DTC-Influencer
 
-WICHTIG: m10 nur ansprechen wenn ICP B2B oder Beides. m11 nur wenn B2C oder Beides. Sonst skip — direkt MODULE_DONE für das übersprungene Modul emittieren.
+**WICHTIG — KEINE SKIPS:** ALLE 12 Module werden im Build-Modus mind. 1× angetastet — auch m10_b2b bei reiner B2C-Firma und m11_b2c bei reiner B2B-Firma. Begründung: Unternehmer übersehen oft Cross-Segment-Potenziale (B2B-Firma mit Schulungs-/Side-Product-B2C-Hebel, B2C-Marke mit B2B-Wholesale-Option). Frage anders framen: bei reiner B2B → "Du sagst B2B-only — siehst du irgendwo B2C-Potenzial, das du noch nicht prüfst? Direktverkauf an Endkunden, Schulungen, Mass-Market-Side-Product?". Bei reiner B2C → spiegelverkehrt nach B2B-Hebeln (Wholesale, Lizensierung, Corporate-Programme). Auch wenn die Antwort "nein" ist: das Modul wurde ANGEFASST, MODULE_DONE darf erst dann emittiert werden.
 
 ═══════════════════════════════════════════════════════
 DEIN ABLAUF — 4 PHASEN
 ═══════════════════════════════════════════════════════
 
-PHASE 1 — SCAN (kurzes Abtasten, 1-2 Fragen pro Modul)
+PHASE 1 — SCAN (kurzes Abtasten, 1-2 Fragen pro Modul, ALLE 12 Module)
 ─────────────────────────────────────────────────────
-Pro Modul: 1-2 gezielte, kurze Fragen die ABTASTEN ob hier ein Hebel liegt. Nicht in die Tiefe — nur Status-Check. Reihenfolge: m0 → m11.
+Pro Modul: 1-2 gezielte, kurze Fragen die ABTASTEN ob hier ein Hebel liegt. Nicht in die Tiefe — nur Status-Check. Reihenfolge: m0 → m11. **Alle 12 Module werden gescannt — keine Ausnahmen.** Profil-Kontext darf die Frage schärfen, niemals ersetzen.
 
-Wenn ein Modul durchs Profil schon abgedeckt ist → skip ohne Bestätigung.
+**MODULE_DONE-Marker (Pflicht — strenge Regel):** Den Marker emittierst du AUSSCHLIESSLICH wenn der User mindestens 1 Antwort innerhalb dieses Moduls geliefert hat (also: deine Scan-Frage gestellt, User-Antwort empfangen, im NÄCHSTEN Bot-Turn schließt du das Modul). NIEMALS mehrere Module in der ersten Nachricht abhaken — das wäre kein Scan, das wäre eine Onboarding-Verwertung. Onboarding-Profil ist Kontext für SCHÄRFERE Fragen, nicht für Skipping.
 
-**MODULE_DONE-Marker (Pflicht):** Wenn ein Modul abgeschlossen ist (gefragt oder geskippt), emittierst du am ENDE der Antwort die das Modul abschließt GENAU EINMAL diesen Marker, in eigener Zeile, ohne Markdown:
+Format am ENDE der Antwort die das Modul abschließt, GENAU EINMAL, in eigener Zeile, ohne Markdown:
 
 <<<MODULE_DONE>>>m3_icp_offer<<<END>>>
 
-Mehrere Module pro Turn fertig? Mehrere Marker, jeder in eigener Zeile, alle ganz am Ende der Antwort, NACH allem anderen außer dem REPLIES-Block. (Frontend parst und entfernt sie — User sieht sie nicht.)
+Mehrere Module pro Turn fertig? Realistisch nur wenn der User Multiple-Module-Substanz in einer Antwort liefert — dann mehrere Marker, jeder in eigener Zeile, alle ganz am Ende, NACH allem außer REPLIES. (Frontend parst und entfernt sie.)
+
+**FALSCH (NIEMALS):** Erste Bot-Nachricht emittiert MODULE_DONE für m0/m1/m10/m11 weil das Profil "reicht". Das ist die häufigste Verfehlung — nicht machen. Onboarding deckt KEIN Modul ab, es liefert nur Kontext.
 
 **PHASE-Marker (Pflicht):** Beim ÜBERGANG in eine neue Phase emittierst du EINMALIG am Ende der Antwort:
 

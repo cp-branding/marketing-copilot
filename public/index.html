@@ -53,7 +53,8 @@ body::before {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: clamp(32px, 6vw, 64px) clamp(16px, 4vw, 32px) clamp(32px, 5vw, 48px);
+  justify-content: center; /* Karten vertikal in der Mitte */
+  padding: clamp(32px, 5vw, 60px) clamp(16px, 4vw, 32px) calc(clamp(56px, 7vw, 84px) + 22px);
   overflow-y: auto;
   background: var(--cp-navy);
 }
@@ -169,13 +170,14 @@ body::before {
 }
 .logout-btn:hover { background: var(--cp-orange); color: var(--cp-black); }
 
-/* Mode grid — 4 Spalten: Specs + Fix + Build + Test */
+/* Mode grid — 4 Spalten: Specs + Fix + Build + Test, horizontal mittig */
 .mode-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: clamp(14px, 2vw, 22px);
   width: 100%;
   max-width: 1240px;
+  margin: 0 auto; /* defensiv: horizontal zentriert auch wenn parent es nicht macht */
   position: relative;
   z-index: 1;
 }
@@ -487,6 +489,10 @@ body::before {
   flex-shrink: 0;
 }
 .back-btn:hover { background: var(--cp-orange); color: var(--cp-black); }
+#chatView.mode-roast .back-btn { border-color: var(--cp-cool, #5BA3D0); color: var(--cp-cool, #5BA3D0); }
+#chatView.mode-roast .back-btn:hover { background: var(--cp-cool, #5BA3D0); color: var(--cp-black); }
+#chatView.mode-fix .back-btn { border-color: var(--cp-danger, #FF6B6B); color: var(--cp-danger, #FF6B6B); }
+#chatView.mode-fix .back-btn:hover { background: var(--cp-danger, #FF6B6B); color: var(--cp-black); }
 
 .header-info { flex: 1; min-width: 0; }
 .header-mode {
@@ -889,6 +895,13 @@ textarea#input::placeholder { color: #9AA3AC; }
 #chatView.mode-roast #sendBtn:hover { background: #7FB8DB; }
 #chatView.mode-fix #sendBtn { background: var(--cp-danger, #FF6B6B); color: var(--cp-off-white); }
 #chatView.mode-fix #sendBtn:hover { background: #FF9090; }
+/* Mode-Tinting für textarea-Schatten + Glow + Header-Logo-Trenner */
+#chatView.mode-roast textarea#input { box-shadow: var(--px) var(--px) 0 var(--cp-cool-deep, #3D7DA3); }
+#chatView.mode-roast textarea#input:focus { box-shadow: 0 0 0 2px var(--cp-cool, #5BA3D0); }
+#chatView.mode-fix textarea#input { box-shadow: var(--px) var(--px) 0 var(--cp-danger-deep, #C43838); }
+#chatView.mode-fix textarea#input:focus { box-shadow: 0 0 0 2px var(--cp-danger, #FF6B6B); }
+#chatView.mode-roast .header-logo { border-left-color: rgba(91, 163, 208, 0.4); }
+#chatView.mode-fix .header-logo { border-left-color: rgba(255, 107, 107, 0.4); }
 
 .hint {
   font-family: var(--cp-font-mono);
@@ -1071,14 +1084,18 @@ textarea#input::placeholder { color: #9AA3AC; }
 }
 @keyframes cpCopper { 0% { background-position: 0 0; } 100% { background-position: 200% 0; } }
 .cp-sysbar {
-  width: 100%; max-width: 1240px;
-  margin: clamp(20px, 3vw, 36px) auto 0;
-  padding: 10px 18px;
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  width: 100%; max-width: none;
+  margin: 0;
+  padding: 12px clamp(20px, 4vw, 36px);
   display: flex; justify-content: space-between; align-items: center;
-  background: rgba(31,31,31,.55);
-  border-top: 1px solid rgba(255,255,255,0.06);
-  border-bottom: 1px solid rgba(0,0,0,0.5);
-  font-family: var(--cp-font-mono); font-size: 14px; letter-spacing: 2px;
+  background: rgba(14, 19, 32, 0.92);
+  backdrop-filter: blur(8px);
+  border-top: 2px solid var(--cp-orange);
+  border-bottom: none;
+  font-family: var(--cp-font-mono); font-size: 13px; letter-spacing: 2px;
+  z-index: 50;
   color: #9AA3AC;
 }
 .cp-sysbar .ok { color: #7DF9A0; }
@@ -1454,12 +1471,11 @@ body.has-profile .select-header,
 .chip:active { background: rgba(255, 145, 77, 0.85); }
 .chip-zone__custom {
   display: flex;
-  justify-content: stretch;
+  justify-content: flex-start;
   border-top: 2px solid rgba(255, 145, 77, 0.3);
   background: rgba(255, 145, 77, 0.04);
 }
 .chip-custom {
-  flex: 1;
   padding: 10px 16px;
   background: transparent;
   color: var(--cp-orange);
@@ -1471,7 +1487,7 @@ body.has-profile .select-header,
   text-transform: uppercase;
   cursor: pointer;
   transition: background 0.08s linear, color 0.08s linear;
-  text-align: center;
+  text-align: left;
 }
 .chip-custom:hover, .chip-custom:focus-visible {
   background: var(--cp-orange);
@@ -1614,7 +1630,7 @@ body.has-profile .select-header,
       </div>
     </div>
 
-    <div class="mode-card fix" role="button" tabindex="0" aria-label="Modus 1: Fix starten" onclick="openMode('quick')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openMode('quick');}">
+    <div class="mode-card fix" role="button" tabindex="0" aria-label="Modus 1: Fix starten" onclick="openModeAuto('quick')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openModeAuto('quick');}">
       <div class="mode-icon" aria-hidden="true">
         <svg viewBox="0 0 16 16" shape-rendering="crispEdges"><path fill="#FF6B6B" d="M9 1H7v2H5v2H3v2H2v2h3v2H4v2h1v2h2v-2h2v-2h2V7h-3V5h2V3h-1z"/></svg>
       </div>
@@ -1627,7 +1643,7 @@ body.has-profile .select-header,
       </div>
     </div>
 
-    <div class="mode-card" role="button" tabindex="0" aria-label="Modus 2: Build starten" onclick="openMode('holistic')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openMode('holistic');}">
+    <div class="mode-card" role="button" tabindex="0" aria-label="Modus 2: Build starten" onclick="openModeAuto('holistic')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openModeAuto('holistic');}">
       <div class="mode-icon" aria-hidden="true">
         <svg viewBox="0 0 16 16" shape-rendering="crispEdges"><path fill="#FF914D" d="M6 1h4v1H6zM4 2h2v1H4zm6 0h2v1h-2zM3 3h1v1H3zm9 0h1v1h-1zM2 4h1v2H2zm11 0h1v2h-1zM6 5h1v1H6zm3 0h1v1H9zM5 6h1v1H5zm2 0h2v1H7zm3 0h1v1h-1zM2 6h1v4H2zm11 0h1v4h-1zM5 7h1v2H5zm5 0h1v2h-1zM6 9h1v1H6zm3 0h1v1H9zM3 10h1v1H3zm9 0h1v1h-1zM2 11h1v1H2zm11 0h1v1h-1zM4 12h2v1H4zm6 0h2v1h-2zM6 13h4v1H6z"/></svg>
       </div>
@@ -1640,7 +1656,7 @@ body.has-profile .select-header,
       </div>
     </div>
 
-    <div class="mode-card roast" role="button" tabindex="0" aria-label="Modus 3: Test starten" onclick="openMode('roast')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openMode('roast');}">
+    <div class="mode-card roast" role="button" tabindex="0" aria-label="Modus 3: Test starten" onclick="openModeAuto('roast')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openModeAuto('roast');}">
       <div class="mode-icon" aria-hidden="true">
         <svg viewBox="0 0 16 16" shape-rendering="crispEdges"><path fill="#5BA3D0" d="M8 1h1v2h1v2h1v1h1v2h1v3h-1v2h-1v1h-2v1H6v-1H4v-1H3v-2H2v-3h1V8h1V6h1V4h1V2h1V1z"/></svg>
       </div>
@@ -2385,6 +2401,8 @@ DEIN VERHALTEN — Triage in 3–5 Runden, dann SOFORT Wert liefern:
 
 FRAGE 1 (nur ohne Kontext-Block): Direkter Pain-Opener, ein Satz, kein Aufwärmen. **Mit Kontext-Block greift stattdessen die KONTEXT-REGEL oben — dann spezifisch öffnen.**
 
+DISCLAIMER-REGEL (sehr wichtig, gilt für ALLE Folge-Turns): In deiner ERSTEN Nachricht erwähnst du EINMAL kurz, dass mehrere Fragen folgen bevor die Empfehlung kommt — z.B. "Ich frage 3-5 Sachen, dann liefere ich." Danach NIEMALS wieder ankündigen. Verboten in Turn 2+: "Eine Frage, bevor ich etwas empfehle." / "Bevor ich eine Richtung empfehle..." / "Noch eine Frage, dann..." / "Letzte Frage vor der Empfehlung". Der User weiß, dass mehrere Fragen kommen — du musst es nicht jedes Mal wiederholen. Stattdessen: einfach die nächste Frage stellen, ggf. mit Mikro-Spiegelung der letzten Antwort als Bridge.
+
 FRAGE 2: Domäne eingrenzen. Welche der 13 Domänen ist es wirklich? Eine gezielte Nachfrage die das klärt.
 
 FRAGE 3 (optional): Nur wenn du noch unsicher bist — eine Verifikations-Frage. Sonst weiter zur Empfehlung.
@@ -2478,9 +2496,11 @@ Mehrere Module pro Turn fertig? Realistisch nur wenn der User Multiple-Module-Su
 
 Reihenfolge: scan → select → dive → plan. Niemals zurückspringen. (Frontend nutzt den Marker für die Phasen-Anzeige.)
 
-ZEIT-COMMIT IM ERSTEN TURN: "Ich tast die 12 Module einmal kurz an — wo's relevant ist tauchen wir tiefer rein, dann baue ich den Plan. Etwa 20-30 Minuten."
+ZEIT-COMMIT IM ERSTEN TURN: Sag im ersten Turn (oder direkt nach der Kontext-Spiegelung wenn Kontext da ist) sinngemäß: "Wir gehen jeden Bereich des Marketings einmal durch — wo's relevant wird, tauchen wir tiefer rein. Plane ungefähr eine Stunde ein, der Plan am Ende ist's wert. Pausieren ist jederzeit möglich, ich speichere den Stand." Niemals eine konkrete Fragenzahl ankündigen — keine "30 Fragen" / "50 Fragen" / "X Fragen" Floskeln. Der User soll sich nicht an einer Zahl festhalten, sondern wissen: wir nehmen uns Zeit, holistisch.
 
-CHECK-IN nach jedem 4. abgeschlossenen Modul (kurz, 1 Satz): "Vier durch, acht noch — weiter?" / "Halbzeit Scan." Nur ein Satz, dann nächste Frage.
+DISCLAIMER-REGEL (sehr wichtig, gilt ab Turn 2): NIEMALS Floskeln wie "Eine Frage, bevor wir weitergehen", "Noch eine Sache, dann machen wir weiter", "Bevor ich mehr frage" oder ähnliche Disclaimer-Bridges. Der User weiß, dass viele Fragen kommen — das wurde im ersten Turn einmal gesagt, danach nie wieder ankündigen. Stattdessen: einfach die nächste Frage stellen, ggf. mit Mikro-Spiegelung als Bridge.
+
+CHECK-IN nach jedem 4. abgeschlossenen Modul (kurz, 1 Satz): "Vier Bereiche durch, acht noch — weiter?" / "Halbzeit Scan." Nur ein Satz, dann nächste Frage. Pausen-Angebot nur wenn der User stockt (kurze Antworten, "weiß-nicht"-Häufung).
 
 PHASE 2 — SELECT (kurze Ansage, KEINE Fragen)
 ─────────────────────────────────────────────────────
@@ -2809,6 +2829,15 @@ function updateEnergyBars() {
 
 function energyClick(event, mode) {
   event.stopPropagation();
+  const saved = getSession(mode);
+  const hasSession = !!(saved && saved.msgs && saved.msgs.length > 1);
+  openMode(mode, hasSession);
+}
+
+// Klick auf die Mode-Card selbst: identische Resume-Logik. Wenn Session existiert,
+// wird sie fortgesetzt — sonst frischer Start. So verliert der User keine History
+// nur weil er auf die Karte statt auf den Energy-Bar klickt.
+function openModeAuto(mode) {
   const saved = getSession(mode);
   const hasSession = !!(saved && saved.msgs && saved.msgs.length > 1);
   openMode(mode, hasSession);

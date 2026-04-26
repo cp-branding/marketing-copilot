@@ -53,7 +53,9 @@ body::before {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center; /* Karten vertikal in der Mitte */
+  /* KEIN justify-content: center — bricht Scroll wenn Inhalt überschreitet.
+     Stattdessen margin: auto 0 auf .mode-grid → zentriert wenn Platz da ist,
+     fällt nach oben wenn nicht (volles Scrollen möglich). */
   padding: clamp(32px, 5vw, 60px) clamp(16px, 4vw, 32px) calc(clamp(56px, 7vw, 84px) + 22px);
   overflow-y: auto;
   background: var(--cp-navy);
@@ -170,14 +172,16 @@ body::before {
 }
 .logout-btn:hover { background: var(--cp-orange); color: var(--cp-black); }
 
-/* Mode grid — 4 Spalten: Specs + Fix + Build + Test, horizontal mittig */
+/* Mode grid — 4 Spalten: Specs + Fix + Build + Test, horizontal+vertikal mittig
+   margin: auto auto → horizontal zentriert, vertikal zentriert wenn Platz reicht,
+   bei Overflow oben verankert mit normalem Scroll. */
 .mode-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: clamp(14px, 2vw, 22px);
   width: 100%;
   max-width: 1240px;
-  margin: 0 auto; /* defensiv: horizontal zentriert auch wenn parent es nicht macht */
+  margin: auto;
   position: relative;
   z-index: 1;
 }

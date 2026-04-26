@@ -726,6 +726,12 @@ body::before {
 #chatView.mode-fix .message.bot .bubble strong { color: var(--cp-danger, #FF6B6B); }
 .bubble em { font-style: italic; color: #FFCDA8; }
 
+/* Bot-Frage hervorheben — letzter ?-Satz wird in Mode-Farbe + bold gerendert,
+   damit der User die Frage auf einen Blick erfasst (Speed-Reading-Modus). */
+.bubble-q { color: var(--cp-orange); font-weight: 700; }
+#chatView.mode-roast .message.bot .bubble .bubble-q { color: var(--cp-cool, #5BA3D0); }
+#chatView.mode-fix .message.bot .bubble .bubble-q { color: var(--cp-danger, #FF6B6B); }
+
 /* Divider between turns — subtle dashed line */
 .message + .message { border-top: 1px dashed rgba(255,145,77,0.12); padding-top: 14px; margin-top: 0; }
 
@@ -918,6 +924,32 @@ textarea#input::placeholder { color: #9AA3AC; }
 #chatView.mode-fix textarea#input:focus { box-shadow: 0 0 0 2px var(--cp-danger, #FF6B6B); }
 #chatView.mode-roast .header-logo { border-left-color: rgba(91, 163, 208, 0.4); }
 #chatView.mode-fix .header-logo { border-left-color: rgba(255, 107, 107, 0.4); }
+#chatView.mode-roast .header-logo-icon {
+  border-color: var(--cp-cool, #5BA3D0);
+  background: var(--cp-cool, #5BA3D0);
+}
+#chatView.mode-fix .header-logo-icon {
+  border-color: var(--cp-danger, #FF6B6B);
+  background: var(--cp-danger, #FF6B6B);
+}
+
+/* Mobile: Composer ist standardmäßig hidden, slidet rein wenn "Eigene Antwort" geklickt
+   wird. Chips bleiben sichtbar. Auf Desktop bleibt der Composer immer offen. */
+@media (max-width: 720px) {
+  #chatView footer {
+    transform: translateY(100%);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.22s cubic-bezier(.2,.8,.2,1), opacity 0.18s linear;
+  }
+  body.composer-open #chatView footer {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+  }
+  /* Wenn Composer auf Mobile geschlossen ist, Chip-Zone nimmt den Platz */
+  #chatView footer { position: relative; }
+}
 
 .hint {
   font-family: var(--cp-font-mono);
@@ -1485,31 +1517,47 @@ body.has-profile .select-header,
 }
 .chip:last-of-type { border-bottom: none; }
 .chip:active { background: rgba(255, 145, 77, 0.85); }
+/* "Eigene Antwort" verhält sich wie eine zusätzliche Chip-Reihe — gleicher Stil wie .chip */
 .chip-zone__custom {
   display: flex;
-  border-top: 2px solid rgba(255, 145, 77, 0.3);
-  background: rgba(255, 145, 77, 0.04);
+  border-top: 1px solid rgba(255, 145, 77, 0.18);
 }
 .chip-custom {
-  flex: 1 1 auto;     /* füllt die ganze Row, damit der Hover-BG voll deckt */
+  flex: 1 1 auto;
   width: 100%;
-  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
   background: transparent;
-  color: var(--cp-orange);
+  color: #F3F5F8;
   border: none;
   border-radius: 0;
   font-family: var(--cp-font-mono);
-  font-size: 0.78rem;
-  letter-spacing: 2px;
-  text-transform: uppercase;
+  font-size: 0.95rem;
+  line-height: 1.35;
+  letter-spacing: normal;
+  text-transform: none;
   cursor: pointer;
   transition: background 0.08s linear, color 0.08s linear;
-  text-align: left; /* Text linksbündig, BG füllt voll */
+  text-align: left;
+}
+.chip-custom::before {
+  content: '✎';
+  display: inline-block;
+  color: rgba(255, 145, 77, 0.55);
+  font-size: 0.95em;
+  width: 14px;
+  flex-shrink: 0;
+  transition: color 0.08s linear;
 }
 .chip-custom:hover, .chip-custom:focus-visible {
   background: var(--cp-orange);
   color: var(--cp-navy-deep, #0E1320);
   outline: none;
+}
+.chip-custom:hover::before, .chip-custom:focus-visible::before {
+  color: var(--cp-navy-deep, #0E1320);
 }
 /* Mode-Tinting */
 #chatView.mode-roast .chip-zone { border-color: var(--cp-cool, #5BA3D0); }
@@ -1519,9 +1567,10 @@ body.has-profile .select-header,
 #chatView.mode-roast .chip::before { color: rgba(91, 163, 208, 0.4); }
 #chatView.mode-roast .chip:hover, #chatView.mode-roast .chip:focus-visible { background: var(--cp-cool, #5BA3D0); color: var(--cp-navy-deep, #0E1320); }
 #chatView.mode-roast .chip:hover::before { color: var(--cp-navy-deep, #0E1320); }
-#chatView.mode-roast .chip-zone__custom { border-top-color: rgba(91, 163, 208, 0.3); background: rgba(91, 163, 208, 0.04); }
-#chatView.mode-roast .chip-custom { color: var(--cp-cool, #5BA3D0); }
-#chatView.mode-roast .chip-custom:hover { background: var(--cp-cool, #5BA3D0); color: var(--cp-navy-deep, #0E1320); }
+#chatView.mode-roast .chip-zone__custom { border-top-color: rgba(91, 163, 208, 0.18); }
+#chatView.mode-roast .chip-custom::before { color: rgba(91, 163, 208, 0.55); }
+#chatView.mode-roast .chip-custom:hover, #chatView.mode-roast .chip-custom:focus-visible { background: var(--cp-cool, #5BA3D0); color: var(--cp-navy-deep, #0E1320); }
+#chatView.mode-roast .chip-custom:hover::before, #chatView.mode-roast .chip-custom:focus-visible::before { color: var(--cp-navy-deep, #0E1320); }
 #chatView.mode-fix .chip-zone { border-color: var(--cp-danger, #FF6B6B); }
 #chatView.mode-fix .chip-zone::before, #chatView.mode-fix .chip-zone::after { background: var(--cp-danger, #FF6B6B); }
 #chatView.mode-fix .chip-zone__label { color: var(--cp-danger, #FF6B6B); border-bottom-color: rgba(255, 107, 107, 0.3); }
@@ -1529,9 +1578,10 @@ body.has-profile .select-header,
 #chatView.mode-fix .chip::before { color: rgba(255, 107, 107, 0.4); }
 #chatView.mode-fix .chip:hover, #chatView.mode-fix .chip:focus-visible { background: var(--cp-danger, #FF6B6B); color: var(--cp-navy-deep, #0E1320); }
 #chatView.mode-fix .chip:hover::before { color: var(--cp-navy-deep, #0E1320); }
-#chatView.mode-fix .chip-zone__custom { border-top-color: rgba(255, 107, 107, 0.3); background: rgba(255, 107, 107, 0.04); }
-#chatView.mode-fix .chip-custom { color: var(--cp-danger, #FF6B6B); }
-#chatView.mode-fix .chip-custom:hover { background: var(--cp-danger, #FF6B6B); color: var(--cp-navy-deep, #0E1320); }
+#chatView.mode-fix .chip-zone__custom { border-top-color: rgba(255, 107, 107, 0.18); }
+#chatView.mode-fix .chip-custom::before { color: rgba(255, 107, 107, 0.55); }
+#chatView.mode-fix .chip-custom:hover, #chatView.mode-fix .chip-custom:focus-visible { background: var(--cp-danger, #FF6B6B); color: var(--cp-navy-deep, #0E1320); }
+#chatView.mode-fix .chip-custom:hover::before, #chatView.mode-fix .chip-custom:focus-visible::before { color: var(--cp-navy-deep, #0E1320); }
 
 /* ─── BUILD-MODUS: Modul-Progress (12 Pips mit Tooltip-Label) ──── */
 .progress-wrap.module-progress {
@@ -1731,7 +1781,7 @@ body.has-profile .select-header,
     <div class="chip-zone__label">Schnellantwort</div>
     <div class="chip-zone__row" id="chipRow"></div>
     <div class="chip-zone__custom">
-      <button type="button" class="chip-custom" id="chipCustom">✎ Eigene Antwort</button>
+      <button type="button" class="chip-custom" id="chipCustom">Eigene Antwort schreiben</button>
     </div>
   </div>
 
@@ -1781,10 +1831,46 @@ function maybeStartOnboarding() {
 // Specs werden SOFORT aus dem PROFIL-Block geparst → Dashboard rendert in <100ms.
 // Summary/Findings/Inspirations laufen im HINTERGRUND via /api/profile-summary —
 // Buttons sind dimmed/disabled bis Background-Call durch ist.
+// Prefetch wird beim Boot parallel zur Intro-Animation getriggert, damit die
+// Specs schon da sind wenn die Animation fadet.
 let __summaryCache = null;
 let __summaryLoading = false;
+let __summaryPromise = null;
 
 function getSummaryCache() { return __summaryCache; }
+
+// Idempotenter Fetch — kann mehrfach aufgerufen werden, returnt immer den gleichen Promise.
+// Wird sowohl beim Boot (parallel zum Intro) als auch von loadProfileSummary aufgerufen.
+function prefetchProfileSummary() {
+  if (__summaryPromise) return __summaryPromise;
+  if (!getProfile()) return Promise.resolve(null);
+  __summaryLoading = true;
+  __summaryPromise = (async () => {
+    try {
+      let res = await fetch('/api/profile-summary', { credentials: 'include' });
+      if (!res.ok) throw new Error('GET ' + res.status);
+      let payload = await res.json();
+      if (!payload.summary || payload.stale) {
+        res = await fetch('/api/profile-summary', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+        });
+        if (!res.ok) throw new Error('POST ' + res.status);
+        payload = await res.json();
+      }
+      __summaryCache = payload.summary || null;
+      return __summaryCache;
+    } catch (err) {
+      console.warn('[profile-summary] prefetch', err);
+      __summaryPromise = null; // bei Fehler erneut versuchen lassen
+      throw err;
+    } finally {
+      __summaryLoading = false;
+    }
+  })();
+  return __summaryPromise;
+}
 
 // Clientseitiger Specs-Parser — extrahiert die wichtigsten Felder direkt aus profile_text.
 // Reihenfolge bestimmt Anzeige-Order. "..."- oder "unklar"-Werte werden geskippt.
@@ -1862,41 +1948,18 @@ async function loadProfileSummary() {
     setButtonsLoadingState(true);
   }
 
-  // STAGE 2 (Hintergrund): LLM-Summary holen/generieren
-  if (__summaryLoading) return;
-  __summaryLoading = true;
-
+  // STAGE 2: Auf Prefetch warten (idempotent — kann beim Boot bereits gestartet sein)
   try {
-    let res = await fetch('/api/profile-summary', { credentials: 'include' });
-    if (!res.ok) throw new Error('GET ' + res.status);
-    let payload = await res.json();
-
-    if (!payload.summary || payload.stale) {
-      res = await fetch('/api/profile-summary', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      if (!res.ok) throw new Error('POST ' + res.status);
-      payload = await res.json();
-    }
-
-    __summaryCache = payload.summary;
-    // Falls LLM bessere/spezifischere Specs liefert: ersetzen
-    if (payload.summary && Array.isArray(payload.summary.specs) && payload.summary.specs.length) {
-      replaceSpecs(payload.summary.specs);
+    const summary = await prefetchProfileSummary();
+    if (summary && Array.isArray(summary.specs) && summary.specs.length) {
+      replaceSpecs(summary.specs);
     } else if (!localSpecs.length) {
-      // Hatte vorhin keine localSpecs UND LLM hat auch nichts geliefert → letzten Fallback
       replaceSpecs(['Profil unvollständig — Onboarding ggf. wiederholen']);
     }
     setButtonsLoadingState(false);
   } catch (err) {
-    console.warn('[profile-summary]', err);
-    // Buttons bleiben dimmed → Klick zeigt Retry-Modal. Dashboard bleibt sichtbar.
     setButtonsLoadingState(false, true);
     if (!localSpecs.length) replaceSpecs(['Profil unvollständig — Onboarding ggf. wiederholen']);
-  } finally {
-    __summaryLoading = false;
   }
 }
 
@@ -2174,13 +2237,27 @@ const bootMinDelay = bootIntroDone
   ? Promise.resolve()
   : new Promise(resolve => setTimeout(resolve, BOOT_MIN_MS));
 
+// Prefetch-mit-Cap — wartet bis zu 8s auf den Profile-Summary-Call, sonst Boot dismiss.
+// So nutzen wir die Intro-Zeit produktiv: Specs sind in der Regel schon gerendert wenn
+// der User auf den Homescreen kommt.
+function prefetchSummaryCapped() {
+  if (!getProfile()) return Promise.resolve();
+  return Promise.race([
+    prefetchProfileSummary().catch(() => null),
+    new Promise(resolve => setTimeout(resolve, 8000)),
+  ]);
+}
+
 if (IS_STANDALONE) {
   if (!getApiKey()) {
     // Skip intro for API-key first-run in standalone mode
     bootIntroDismiss();
     document.addEventListener('DOMContentLoaded', showApiKeySetup);
   } else {
-    Promise.all([bootMinDelay, bootstrapProfile()]).then(() => {
+    Promise.all([
+      bootMinDelay,
+      bootstrapProfile().then(prefetchSummaryCapped),
+    ]).then(() => {
       bootIntroDismiss();
       if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', maybeStartOnboarding);
@@ -2197,6 +2274,9 @@ if (IS_STANDALONE) {
       // Profil aus Cloud laden BEVOR Onboarding-Check — sonst startet Desktop Onboarding
       // obwohl Mobile schon ein Profil gespeichert hat.
       await bootstrapProfile();
+      // Prefetch der Summary parallel — wenn Profil da ist, läuft sie schon.
+      // Boot wartet bis zu 8s drauf, sonst dismiss.
+      await prefetchSummaryCapped();
       bootIntroDismiss();
       maybeStartOnboarding();
     } catch {
@@ -2490,19 +2570,29 @@ m11_b2c        — B2C-Spezifika: Impuls vs. Considered, E-Commerce Funnel, CRO,
 DEIN ABLAUF — 4 PHASEN
 ═══════════════════════════════════════════════════════
 
-PHASE 1 — SCAN (kurzes Abtasten, 1-2 Fragen pro Modul, ALLE 12 Module)
+PHASE 1 — SCAN (echtes Abtasten, 3-5 Fragen pro Modul, ALLE 12 Module)
 ─────────────────────────────────────────────────────
-Pro Modul: 1-2 gezielte, kurze Fragen die ABTASTEN ob hier ein Hebel liegt. Nicht in die Tiefe — nur Status-Check. Reihenfolge: m0 → m11. **Alle 12 Module werden gescannt — keine Ausnahmen.** Profil-Kontext darf die Frage schärfen, niemals ersetzen.
+Pro Modul: **3-5 substanzielle Fragen** die wirklich verstehen wo der User steht und wo Hebel sind. Das ist KEIN Quick-Scan, sondern eine echte holistische Auseinandersetzung mit jedem Bereich. Reihenfolge: m0 → m11. **Alle 12 Module werden so behandelt — keine Ausnahmen, keine Skips.** Profil-Kontext darf die Frage schärfen, niemals ersetzen.
 
-**MODULE_DONE-Marker (Pflicht — strenge Regel):** Den Marker emittierst du AUSSCHLIESSLICH wenn der User mindestens 1 Antwort innerhalb dieses Moduls geliefert hat (also: deine Scan-Frage gestellt, User-Antwort empfangen, im NÄCHSTEN Bot-Turn schließt du das Modul). NIEMALS mehrere Module in der ersten Nachricht abhaken — das wäre kein Scan, das wäre eine Onboarding-Verwertung. Onboarding-Profil ist Kontext für SCHÄRFERE Fragen, nicht für Skipping.
+Frage stellen, Antwort verstehen, ggf. EINE präzisierende Nachfrage, dann nächste Frage zum gleichen Modul. Erst wenn das Modul wirklich verstanden ist (mind. 3 substanzielle User-Antworten dazu), schließt du es ab.
 
-Format am ENDE der Antwort die das Modul abschließt, GENAU EINMAL, in eigener Zeile, ohne Markdown:
+**MODULE_DONE-Marker (Pflicht — strenge Regel):**
+Den Marker emittierst du AUSSCHLIESSLICH wenn:
+1. Der User mind. **3 substanzielle Antworten** zu diesem Modul gegeben hat (nicht "ja"/"nein", sondern erklärende Antworten)
+2. Du mindestens 1 konkretes Detail/Zahl/Fall aus dem Modul kennst (nicht nur Generika)
+3. Du sagen könntest "Hier sehe ich [Hebel/Lücke X]" — also Diagnose-Substanz vorhanden ist
+
+Wenn der User oberflächlich antwortet → mehr fragen, NICHT abhaken. Lieber 5 Fragen pro Modul als ein vorschnelles MODULE_DONE.
+
+Format am ENDE der Antwort, GENAU EINMAL, in eigener Zeile, ohne Markdown:
 
 <<<MODULE_DONE>>>m3_icp_offer<<<END>>>
 
-Mehrere Module pro Turn fertig? Realistisch nur wenn der User Multiple-Module-Substanz in einer Antwort liefert — dann mehrere Marker, jeder in eigener Zeile, alle ganz am Ende, NACH allem außer REPLIES. (Frontend parst und entfernt sie.)
-
-**FALSCH (NIEMALS):** Erste Bot-Nachricht emittiert MODULE_DONE für m0/m1/m10/m11 weil das Profil "reicht". Das ist die häufigste Verfehlung — nicht machen. Onboarding deckt KEIN Modul ab, es liefert nur Kontext.
+**FALSCH (NIEMALS):**
+— Mehrere Module in einer Bot-Nachricht abhaken (außer es kommt eine Multi-Modul-Substanz-Antwort vom User, was extrem selten ist)
+— Modul nach 1-2 oberflächlichen Fragen schließen, weil das Profil "reicht"
+— Onboarding-Daten als Module-Done werten — Onboarding ist Kontext, nicht Tiefe
+— "Wir gehen weiter" oder "auf zu nächsten Punkt" — direkter Übergang ohne Tiefe = Verfehlung
 
 **PHASE-Marker (Pflicht):** Beim ÜBERGANG in eine neue Phase emittierst du EINMALIG am Ende der Antwort:
 
@@ -2513,7 +2603,7 @@ Mehrere Module pro Turn fertig? Realistisch nur wenn der User Multiple-Module-Su
 
 Reihenfolge: scan → select → dive → plan. Niemals zurückspringen. (Frontend nutzt den Marker für die Phasen-Anzeige.)
 
-ZEIT-COMMIT IM ERSTEN TURN: Sag im ersten Turn (oder direkt nach der Kontext-Spiegelung wenn Kontext da ist) sinngemäß: "Wir gehen jeden Bereich des Marketings einmal durch — wo's relevant wird, tauchen wir tiefer rein. Plane ungefähr eine Stunde ein, der Plan am Ende ist's wert. Pausieren ist jederzeit möglich, ich speichere den Stand." Niemals eine konkrete Fragenzahl ankündigen — keine "30 Fragen" / "50 Fragen" / "X Fragen" Floskeln. Der User soll sich nicht an einer Zahl festhalten, sondern wissen: wir nehmen uns Zeit, holistisch.
+ZEIT-COMMIT IM ERSTEN TURN: Sag im ersten Turn (oder direkt nach der Kontext-Spiegelung wenn Kontext da ist) sinngemäß: "Wir gehen jeden Bereich des Marketings holistisch durch — kein Schnelldurchlauf, sondern echte Auseinandersetzung. Plane 1 bis 2 Stunden ein. Der Plan am Ende ist's wert. Pausieren ist jederzeit möglich, ich speichere den Stand." Niemals eine konkrete Fragenzahl ankündigen — keine "30 Fragen" / "50 Fragen" / "X Fragen" Floskeln. Der User soll sich nicht an einer Zahl festhalten, sondern wissen: wir nehmen uns Zeit, holistisch in die Tiefe.
 
 DISCLAIMER-REGEL (sehr wichtig, gilt ab Turn 2): NIEMALS Floskeln wie "Eine Frage, bevor wir weitergehen", "Noch eine Sache, dann machen wir weiter", "Bevor ich mehr frage" oder ähnliche Disclaimer-Bridges. Der User weiß, dass viele Fragen kommen — das wurde im ersten Turn einmal gesagt, danach nie wieder ankündigen. Stattdessen: einfach die nächste Frage stellen, ggf. mit Mikro-Spiegelung als Bridge.
 
@@ -2532,11 +2622,11 @@ Wähl 3-5 Hebel basierend auf:
 
 Begründe pro Hebel in 1 Satz warum genau dieser. Dann direkt weiter mit Phase 3.
 
-PHASE 3 — DIVE (4-6 Fragen pro gewähltem Hebel)
+PHASE 3 — DIVE (6-10 Fragen pro gewähltem Hebel)
 ─────────────────────────────────────────────────────
-Pro Hebel: 4-6 konkrete Tiefen-Fragen. Echte Beispiele, Zahlen, Hindernisse. Nicht abstrakt. Stell EINE Frage pro Turn.
+Pro Hebel: **6-10 konkrete Tiefen-Fragen.** Echte Beispiele, konkrete Zahlen, Hindernisse, getestete Hypothesen. Nicht abstrakt. Stell EINE Frage pro Turn. Diese Phase ist das Herzstück des Build — nicht oberflächlich durchhetzen, sondern die Hebel wirklich aufschließen.
 
-EMPATHY-MIKRO-PAUSE: Nach 2-3 Tiefen-Fragen am Stück eine 1-Satz-Mikro-Validierung einbauen, ohne den Fluss zu brechen ("Konkret. Weiter." / "Das sind harte Zahlen — gut, dass du das durchblickst." / "Sauberer Datenpunkt."). Hält den User über die ~20-Min-Build-Strecke im Spiel. Nicht inflationär, nicht jeder Turn — nur dort wo wirklich was Substantielles geliefert wurde.
+EMPATHY-MIKRO-PAUSE: Nach 2-3 Tiefen-Fragen am Stück eine 1-Satz-Mikro-Validierung einbauen, ohne den Fluss zu brechen ("Konkret. Weiter." / "Das sind harte Zahlen — gut, dass du das durchblickst." / "Sauberer Datenpunkt."). Hält den User über die ~1-2-Stunden-Build-Strecke im Spiel. Nicht inflationär, nicht jeder Turn — nur dort wo wirklich was Substantielles geliefert wurde.
 
 Wenn DIVE für einen Hebel abgeschlossen ist (genug Substanz für Maßnahmen), emittiere am Ende der Antwort die Marker erneut für die zugehörige Modul-ID. (Die ID kann sowohl in Scan als auch Dive abgeschlossen werden — das Frontend de-dupliziert.)
 
@@ -3190,6 +3280,7 @@ function addMsg(role, text, isRestore = false) {
     if (role === 'bot' && currentMode === 'holistic') updateModuleProgress();
   } else {
     clearReplies(); // während bot tippt, chips weg
+    closeComposer(); // Mobile: Composer einklappen, sobald die nächste Frage kommt
     setInputEnabled(false);
     typewriter(bubble, visibleText).then(() => {
       // Live: pro neu abgeschlossenes Modul ein Toast einblenden + Progress aktualisieren
@@ -3204,7 +3295,8 @@ function addMsg(role, text, isRestore = false) {
       if (shouldShowExport(visibleText)) appendExportBox(bubble);
       setInputEnabled(true);
       if (extractedReplies) renderReplies(extractedReplies);
-      else document.getElementById('input')?.focus();
+      // Auto-Scroll: letzte Bot-Frage oben im Sichtbereich verankern (kurz nach Render)
+      setTimeout(() => scrollLastBotQuestionIntoView('start'), 80);
     });
   }
 
@@ -3245,17 +3337,34 @@ function useChipReply(text) {
   send();
 }
 
+function openComposer() {
+  document.body.classList.add('composer-open');
+}
+function closeComposer() {
+  document.body.classList.remove('composer-open');
+}
+
 function focusComposerAndScroll() {
+  openComposer();
   const input = document.getElementById('input');
   if (!input) return;
-  input.focus();
-  // Nach Keyboard-Animation: letztes Bot-Bubble unterhalb des sichtbaren Bereichs parken,
-  // damit Frage + Composer beide sichtbar sind (iOS/Android Soft-Keyboard).
+  // Slide-Animation des Composers abwarten, dann fokussieren + scrollen
   setTimeout(() => {
-    const bubbles = document.querySelectorAll('#chat .message.bot .bubble');
-    const last = bubbles[bubbles.length - 1];
-    last?.scrollIntoView({ block: 'end', behavior: 'smooth' });
-  }, 320);
+    input.focus();
+    setTimeout(() => {
+      scrollLastBotQuestionIntoView('end');
+    }, 280);
+  }, 80);
+}
+
+// Scrollt die letzte Bot-Bubble so, dass die Frage gut lesbar oben sichtbar ist.
+// mode='start' → Frage am OBEREN Rand des Chats (Standard nach jeder Bot-Antwort)
+// mode='end'   → Bubble drückt sich direkt über den Composer (für iOS-Keyboard)
+function scrollLastBotQuestionIntoView(mode) {
+  const bubbles = document.querySelectorAll('#chat .message.bot');
+  const last = bubbles[bubbles.length - 1];
+  if (!last) return;
+  last.scrollIntoView({ block: mode === 'end' ? 'end' : 'start', behavior: 'smooth' });
 }
 
 function finishOnboarding() {
@@ -3319,7 +3428,7 @@ function formatText(text) {
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
-  return esc
+  const html = esc
     // Headings müssen VOR bold/newline-replacement laufen, am Zeilenanfang
     .replace(/^### (.+)$/gm, '<span class="md-h3">$1</span>')
     .replace(/^## (.+)$/gm, '<span class="md-h2">$1</span>')
@@ -3332,6 +3441,19 @@ function formatText(text) {
     // Doppelte Newlines = Absatz-Trennung (mit margin), einfache = Zeilenumbruch
     .replace(/\n\n+/g, '<br class="para">')
     .replace(/\n/g, '<br>');
+  return highlightLastQuestion(html);
+}
+
+// Hebt den LETZTEN ?-Satz mit Mode-Farbe hervor — damit der User die Frage
+// auf einen Blick erfasst, auch wenn die Bubble mehrere Sätze enthält.
+function highlightLastQuestion(html) {
+  if (!html || html.indexOf('?') === -1) return html;
+  // Boundary: vorheriges Satzende (. oder !) gefolgt von Leerzeichen, ODER <br>, ODER Start.
+  // Frage = beliebiger Inhalt (auch <strong>/<em>) bis zum nächsten `?` — und kein weiteres `?` danach.
+  return html.replace(
+    /(?:[.!]\s+|<br[^>]*>\s*|^)([^.!?]*?\?)(?!.*\?)/s,
+    (match, question) => match.slice(0, match.length - question.length) + '<span class="bubble-q">' + question + '</span>'
+  );
 }
 
 function showTyping() {
@@ -3534,6 +3656,7 @@ async function send() {
   input.value = '';
   input.style.height = 'auto';
   clearDraft(currentMode);
+  closeComposer(); // Mobile: zurückklappen sobald gesendet
   setInputEnabled(false);
   addMsg('user', text);
   messages.push({ role: 'user', content: text });

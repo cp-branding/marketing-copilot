@@ -176,14 +176,27 @@ body::before {
    margin: auto auto → horizontal zentriert, vertikal zentriert wenn Platz reicht,
    bei Overflow oben verankert mit normalem Scroll. */
 .mode-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: clamp(14px, 2vw, 22px);
+  display: flex;
+  align-items: stretch;
+  gap: clamp(28px, 5vw, 72px);   /* sichtbarer Spalten-Trenner: links Info, rechts Module */
   width: 100%;
   max-width: 1240px;
   margin: auto;
   position: relative;
   z-index: 1;
+}
+.mode-grid__specs {
+  flex: 0 1 280px;
+  min-width: 240px;
+  display: flex;
+  flex-direction: column;
+}
+.mode-grid__modes {
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(14px, 2vw, 22px);
+  min-width: 0;
 }
 
 .mode-card {
@@ -962,10 +975,13 @@ body.composer-open #chatView footer {
    RESPONSIVE
    ═══════════════════════════════════════════════════════════════════════════ */
 @media (max-width: 1180px) {
-  .mode-grid { grid-template-columns: repeat(2, 1fr); }
+  .mode-grid { flex-direction: column; gap: 24px; }
+  .mode-grid__specs { flex: 1 1 auto; min-width: 0; }
+  .mode-grid__modes { grid-template-columns: repeat(2, 1fr); }
 }
 @media (max-width: 720px) {
-  .mode-grid { grid-template-columns: 1fr; gap: 14px; }
+  .mode-grid { gap: 14px; }
+  .mode-grid__modes { grid-template-columns: 1fr; }
   .mode-card { min-height: auto; }
 }
 @media (max-width: 560px) {
@@ -1193,9 +1209,19 @@ body.composer-open #chatView footer {
   position: relative;
 }
 .cp-dashboard.on { display: flex; flex-direction: column; }
-.cp-dashboard:hover { transform: none; box-shadow: var(--cp-shadow-pixel); }
-.cp-dashboard.mode-card { /* override pointer & hover-shake aus .mode-card */
+.cp-dashboard.mode-card {
+  /* Info-Spalte → weißer Rahmen (nicht Modul, nicht Akzent). */
   cursor: default;
+  border-color: var(--cp-off-white);
+  box-shadow:
+    var(--px) var(--px) 0 var(--cp-black),
+    var(--px-2) var(--px-2) 0 rgba(248, 248, 248, 0.55);
+}
+.cp-dashboard:hover {
+  transform: none;
+  box-shadow:
+    var(--px) var(--px) 0 var(--cp-black),
+    var(--px-2) var(--px-2) 0 rgba(248, 248, 248, 0.55);
 }
 .cp-dashboard__status {
   font-family: var(--cp-font-mono);
@@ -1209,7 +1235,7 @@ body.composer-open #chatView footer {
 .cp-dashboard__title {
   font-family: var(--cp-font-display);
   font-size: clamp(0.875rem, 1.4vw, 1rem);
-  color: var(--cp-orange);
+  color: var(--cp-off-white);
   letter-spacing: 0.1em;
   text-transform: uppercase;
   margin: 0 0 14px;
@@ -1241,39 +1267,53 @@ body.composer-open #chatView footer {
 .cp-dashboard__actions {
   margin-top: 14px;
   padding-top: 12px;
-  border-top: 1px dashed rgba(255,145,77,0.3);
+  border-top: 1px dashed rgba(248, 248, 248, 0.25);
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 .cp-dashboard__btn.cp-energy--action {
-  --accent: var(--cp-orange);
+  --accent: var(--cp-off-white);
   --fill: 0%;
   width: 100%;
   margin-top: 0;
-  padding: 0;
+  padding: 8px 12px;
   background: rgba(0,0,0,0.45);
   color: var(--cp-off-white);
-  border: var(--cp-border) solid var(--cp-orange);
+  border: var(--cp-border) solid var(--cp-off-white);
   border-radius: 0;
   cursor: pointer;
+  /* Pixel-Font + Buchstabenabstand auf der Button-Ebene, damit textContent-Replacements
+     (setButtonsLoadingState) die Schrift behalten — vorher saß der Stil nur auf den
+     inneren Spans und ging beim Re-Render verloren. */
+  font-family: var(--cp-font-display);
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-align: center;
 }
 .cp-dashboard__btn.cp-energy--action:hover,
 .cp-dashboard__btn.cp-energy--action:focus-visible {
   --fill: 100%;
   outline: none;
 }
-@keyframes cpBlink { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
-/* Hero-Typewriter + Untertitel ausblenden sobald Profil erkannt ist.
-   Plus: alte Chrome (mast/topbar/copper) gehört zum alten Layout — global aus, weil der
-   Specs-Card jetzt in der mode-grid sitzt. Bottom-sysbar trägt Status. */
-body.has-profile .select-header #heroLine,
-body.has-profile .select-header > p,
-body.has-profile .select-header,
-.select-header.has-dashboard #heroLine,
-.select-header.has-dashboard > p {
-  display: none !important;
+.cp-dashboard__btn.cp-energy--action::before {
+  background: linear-gradient(90deg, rgba(248,248,248,0.18), rgba(248,248,248,0.32));
 }
+.cp-dashboard__btn.cp-energy--action .cp-energy__label {
+  font-family: inherit;
+  font-size: inherit;
+  letter-spacing: inherit;
+  justify-content: center;
+  mix-blend-mode: normal;
+}
+@keyframes cpBlink { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+/* Cockpit-Header übernimmt jetzt die Hero-Rolle für Profil-Vorhanden- UND Empty-State.
+   Der alte Fallback `.select-header` (Moin.) bleibt im DOM aus historischen Gründen,
+   wird aber nie mehr angezeigt — vermeidet das ~1s-Flackern beim Boot. */
+.select-header,
+.select-header #heroLine,
+.select-header > p { display: none !important; }
 .cp-mast, .cp-topbar, .cp-copper { display: none !important; }
 
 /* Mobile-Tweaks fürs Dashboard (jetzt als Mode-Card im Grid) */
@@ -1972,7 +2012,8 @@ body.is-user-view .select-header { display: none !important; }
   </header>
 
   <div class="mode-grid">
-    <!-- Specs / Dashboard als 1. Karte, gleicher Card-Stil wie Mode-Karten -->
+   <div class="mode-grid__specs">
+    <!-- Specs / Dashboard — Info-Spalte mit weißem Rahmen, abgesetzt von den 3 Modulen -->
     <div class="mode-card mode-card--dash cp-dashboard" id="profileDashboard" role="region" aria-label="Dein Profil">
       <div class="cp-dashboard__status" id="dashStatus">◍ LADE PROFIL</div>
       <h2 class="cp-dashboard__title">Specs</h2>
@@ -1980,15 +2021,17 @@ body.is-user-view .select-header { display: none !important; }
         <li class="is-loading">scanne …</li>
       </ul>
       <div class="cp-dashboard__actions" id="dashActions" style="display:none;">
-        <button type="button" class="cp-dashboard__btn cp-energy cp-energy--action" id="btnShowSummary" aria-label="Show Summary">
-          <span class="cp-energy__label"><span class="cp-energy__state">SHOW</span><em class="cp-energy__progress">SUMMARY</em></span>
+        <button type="button" class="cp-dashboard__btn cp-energy cp-energy--action" id="btnShowSummary" aria-label="Summary öffnen">
+          <span class="cp-energy__label">SUMMARY</span>
         </button>
-        <button type="button" class="cp-dashboard__btn cp-energy cp-energy--action" id="btnDailyInspiration" aria-label="Daily Inspiration">
-          <span class="cp-energy__label"><span class="cp-energy__state">DAILY</span><em class="cp-energy__progress">INSPIRATION</em></span>
+        <button type="button" class="cp-dashboard__btn cp-energy cp-energy--action" id="btnDailyInspiration" aria-label="Inspiration öffnen">
+          <span class="cp-energy__label">INSPIRATION</span>
         </button>
       </div>
     </div>
+   </div>
 
+   <div class="mode-grid__modes">
     <div class="mode-card fix" role="button" tabindex="0" aria-label="Modus 1: Fix starten" onclick="openModeAuto('quick')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openModeAuto('quick');}">
       <div class="mode-icon" aria-hidden="true">
         <svg viewBox="0 0 16 16" shape-rendering="crispEdges"><path fill="#FF6B6B" d="M9 1H7v2H5v2H3v2H2v2h3v2H4v2h1v2h2v-2h2v-2h2V7h-3V5h2V3h-1z"/></svg>
@@ -2027,6 +2070,7 @@ body.is-user-view .select-header { display: none !important; }
         <div class="cp-energy__label"><span class="cp-energy__state">START</span><em class="cp-energy__progress">NEW</em></div>
       </div>
     </div>
+   </div>
   </div>
 
   <!-- User-Profile-Eintritt — wechselt zur User-Panel-Section -->
@@ -2346,18 +2390,18 @@ function setButtonsLoadingState(loading, errored = false) {
   if (loading) {
     sumBtn.disabled = true;  sumBtn.style.opacity = '0.5';   sumBtn.style.cursor = 'wait';
     dailyBtn.disabled = true; dailyBtn.style.opacity = '0.5'; dailyBtn.style.cursor = 'wait';
-    sumBtn.textContent   = 'Show Summary · lädt…';
-    dailyBtn.textContent = 'Daily Inspiration · lädt…';
+    sumBtn.textContent   = 'SUMMARY · LÄDT';
+    dailyBtn.textContent = 'INSPIRATION · LÄDT';
   } else if (errored) {
     sumBtn.disabled = false;  sumBtn.style.opacity = '0.7';   sumBtn.style.cursor = 'pointer';
     dailyBtn.disabled = false; dailyBtn.style.opacity = '0.7'; dailyBtn.style.cursor = 'pointer';
-    sumBtn.textContent   = 'Show Summary · Retry';
-    dailyBtn.textContent = 'Daily Inspiration · Retry';
+    sumBtn.textContent   = 'SUMMARY · RETRY';
+    dailyBtn.textContent = 'INSPIRATION · RETRY';
   } else {
     sumBtn.disabled = false;  sumBtn.style.opacity = '';      sumBtn.style.cursor = '';
     dailyBtn.disabled = false; dailyBtn.style.opacity = '';   dailyBtn.style.cursor = '';
-    sumBtn.textContent   = 'Show Summary';
-    dailyBtn.textContent = 'Daily Inspiration';
+    sumBtn.textContent   = 'SUMMARY';
+    dailyBtn.textContent = 'INSPIRATION';
   }
 }
 

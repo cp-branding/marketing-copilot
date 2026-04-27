@@ -933,22 +933,20 @@ textarea#input::placeholder { color: #9AA3AC; }
   background: var(--cp-danger, #FF6B6B);
 }
 
-/* Mobile: Composer ist standardmäßig hidden, slidet rein wenn "Eigene Antwort" geklickt
-   wird. Chips bleiben sichtbar. Auf Desktop bleibt der Composer immer offen. */
-@media (max-width: 720px) {
-  #chatView footer {
-    transform: translateY(100%);
-    opacity: 0;
-    pointer-events: none;
-    transition: transform 0.22s cubic-bezier(.2,.8,.2,1), opacity 0.18s linear;
-  }
-  body.composer-open #chatView footer {
-    transform: translateY(0);
-    opacity: 1;
-    pointer-events: auto;
-  }
-  /* Wenn Composer auf Mobile geschlossen ist, Chip-Zone nimmt den Platz */
-  #chatView footer { position: relative; }
+/* Composer (Textarea + Send) ist standardmäßig hidden — slidet rein wenn
+   "Eigene Antwort" geklickt wird. Gilt für Desktop UND Mobile gleich.
+   Chips bleiben sichtbar. */
+#chatView footer {
+  position: relative;
+  transform: translateY(100%);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.22s cubic-bezier(.2,.8,.2,1), opacity 0.18s linear;
+}
+body.composer-open #chatView footer {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .hint {
@@ -1248,48 +1246,21 @@ textarea#input::placeholder { color: #9AA3AC; }
   flex-direction: column;
   gap: 8px;
 }
-.cp-dashboard__btn {
+.cp-dashboard__btn.cp-energy--action {
+  --accent: var(--cp-orange);
+  --fill: 0%;
   width: 100%;
-  padding: 10px 14px;
-  background: transparent;
-  color: var(--cp-orange);
+  margin-top: 0;
+  padding: 0;
+  background: rgba(0,0,0,0.45);
+  color: var(--cp-off-white);
   border: var(--cp-border) solid var(--cp-orange);
   border-radius: 0;
-  font-family: var(--cp-font-mono);
-  font-size: 0.78rem;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
   cursor: pointer;
-  transition: background 0.12s ease, color 0.12s ease, transform 0.1s ease;
 }
-.cp-dashboard__btn:hover, .cp-dashboard__btn:focus-visible {
-  background: var(--cp-orange);
-  color: var(--cp-navy-deep);
-  outline: none;
-  transform: translate(-1px, -1px);
-}
-/* Logout × in der Card-Ecke */
-.dash-logout {
-  position: absolute;
-  top: 10px; right: 10px;
-  width: 24px; height: 24px;
-  background: transparent;
-  color: #6B7480;
-  border: 1px solid rgba(255,145,77,0.25);
-  border-radius: 0;
-  font-family: var(--cp-font-mono);
-  font-size: 14px;
-  line-height: 1;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: color 0.12s, border-color 0.12s;
-  padding: 0;
-}
-.dash-logout:hover, .dash-logout:focus-visible {
-  color: var(--cp-orange);
-  border-color: var(--cp-orange);
+.cp-dashboard__btn.cp-energy--action:hover,
+.cp-dashboard__btn.cp-energy--action:focus-visible {
+  --fill: 100%;
   outline: none;
 }
 @keyframes cpBlink { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
@@ -1310,6 +1281,316 @@ body.has-profile .select-header,
   .cp-dashboard__title { font-size: 0.95rem; }
   .cp-dashboard__specs { font-size: 0.86rem; line-height: 1.55; }
   .cp-dashboard__btn { font-size: 0.74rem; padding: 9px 12px; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   COCKPIT HEADER · USER BAR · USER PANEL
+   ═══════════════════════════════════════════════════════════════════════════ */
+.cockpit-header {
+  width: 100%;
+  max-width: 1240px;
+  margin: 0 auto clamp(20px, 3vw, 36px);
+  text-align: center;
+  position: relative;
+  z-index: 1;
+  padding: 0 clamp(8px, 2vw, 16px);
+}
+.cockpit-header h1 {
+  font-family: var(--cp-font-display);
+  font-size: clamp(1.6rem, 4vw, 2.5rem);
+  color: var(--cp-off-white);
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+  margin-bottom: clamp(16px, 2vw, 24px);
+}
+.cockpit-header p {
+  font-family: var(--cp-font-mono);
+  font-size: clamp(1rem, 1.5vw, 1.2rem);
+  color: #D8DDE2;
+  line-height: 1.5;
+  max-width: 720px;
+  margin: 0 auto;
+}
+.cockpit-header .ck-mode-fix    { color: var(--cp-danger); }
+.cockpit-header .ck-mode-build  { color: var(--cp-orange); }
+.cockpit-header .ck-mode-test   { color: var(--cp-cool); }
+
+.cp-userbar {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin: clamp(20px, 3vw, 32px) 0 clamp(28px, 4vw, 44px);
+  position: relative;
+  z-index: 1;
+}
+.cp-userbar__btn {
+  font-family: var(--cp-font-mono);
+  font-size: clamp(0.95rem, 1.3vw, 1.1rem);
+  letter-spacing: 0.04em;
+  color: var(--cp-off-white);
+  background: transparent;
+  border: var(--cp-border) solid var(--cp-off-white);
+  border-radius: var(--cp-radius-chip);
+  padding: 10px 28px;
+  cursor: pointer;
+  transition: background var(--cp-dur) var(--cp-ease), color var(--cp-dur) var(--cp-ease), transform var(--cp-dur) var(--cp-ease);
+  min-height: 44px;
+}
+.cp-userbar__btn:hover {
+  background: var(--cp-off-white);
+  color: var(--cp-navy-deep);
+  transform: translate(calc(var(--px) * -0.5), calc(var(--px) * -0.5));
+}
+.cp-userbar__btn:focus-visible {
+  outline: var(--cp-border) solid var(--cp-orange);
+  outline-offset: 3px;
+}
+
+/* User-Panel — eigene Section innerhalb #selectorView */
+.cp-user-panel {
+  display: none;
+  width: 100%;
+  max-width: 1040px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+  padding-bottom: clamp(40px, 6vw, 72px);
+}
+body.is-user-view .cp-user-panel { display: block; }
+body.is-user-view .cockpit-header,
+body.is-user-view .mode-grid,
+body.is-user-view .cp-userbar,
+body.is-user-view #profileDashboard,
+body.is-user-view .select-header { display: none !important; }
+
+.cp-user-panel__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: clamp(20px, 3vw, 32px);
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.cp-user-panel__head h1 {
+  font-family: var(--cp-font-display);
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  color: var(--cp-off-white);
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+}
+.cp-user-panel__back {
+  font-family: var(--cp-font-mono);
+  font-size: clamp(0.9rem, 1.2vw, 1rem);
+  letter-spacing: 0.04em;
+  color: var(--cp-off-white);
+  background: transparent;
+  border: var(--cp-border) solid var(--cp-off-white);
+  border-radius: var(--cp-radius-chip);
+  padding: 8px 18px;
+  cursor: pointer;
+  text-transform: uppercase;
+  min-height: 44px;
+  transition: background var(--cp-dur) var(--cp-ease), color var(--cp-dur) var(--cp-ease);
+}
+.cp-user-panel__back:hover { background: var(--cp-off-white); color: var(--cp-navy-deep); }
+
+.cp-user-card {
+  background: var(--cp-navy-deep);
+  border: var(--cp-border-chunky) solid var(--cp-orange);
+  border-radius: var(--cp-radius-card);
+  padding: clamp(20px, 2.5vw, 28px);
+  box-shadow: var(--cp-shadow-pixel);
+  margin-bottom: clamp(18px, 2.5vw, 24px);
+}
+.cp-user-card__tag {
+  font-family: var(--cp-font-display);
+  font-size: 0.5625rem;
+  letter-spacing: 0.1em;
+  color: var(--cp-orange);
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+.cp-user-card__title {
+  font-family: var(--cp-font-display);
+  font-size: clamp(0.875rem, 1.4vw, 1rem);
+  color: var(--cp-off-white);
+  margin-bottom: 16px;
+  letter-spacing: 0.02em;
+}
+
+/* Account-Block */
+.cp-user-account {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.cp-user-account__email {
+  font-family: var(--cp-font-mono);
+  font-size: clamp(1rem, 1.4vw, 1.15rem);
+  color: #D8DDE2;
+  word-break: break-all;
+}
+.cp-user-account__email::before {
+  content: '> ';
+  color: var(--cp-orange);
+}
+.cp-user-account__logout {
+  font-family: var(--cp-font-display);
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--cp-off-white);
+  background: var(--cp-danger);
+  border: var(--cp-border) solid var(--cp-black);
+  border-radius: var(--cp-radius-chip);
+  padding: 12px 20px;
+  cursor: pointer;
+  min-height: 44px;
+  box-shadow: var(--px) var(--px) 0 var(--cp-black), var(--px-2) var(--px-2) 0 var(--cp-danger-deep);
+  transition: transform var(--cp-dur) var(--cp-ease);
+}
+.cp-user-account__logout:hover { transform: translate(calc(var(--px) * -0.5), calc(var(--px) * -0.5)); }
+.cp-user-account__logout:active { transform: translate(var(--px), var(--px)); box-shadow: 0 0 0 var(--cp-black); }
+
+/* Profil-Editor */
+.cp-user-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px 18px;
+  margin-bottom: 18px;
+}
+.cp-user-form__field { display: flex; flex-direction: column; gap: 6px; }
+.cp-user-form__label {
+  font-family: var(--cp-font-display);
+  font-size: 0.55rem;
+  letter-spacing: 0.1em;
+  color: var(--cp-orange);
+  text-transform: uppercase;
+}
+.cp-user-form__input {
+  font-family: var(--cp-font-mono);
+  font-size: clamp(0.95rem, 1.3vw, 1.1rem);
+  color: var(--cp-black);
+  background: var(--cp-off-white);
+  border: var(--cp-border) solid var(--cp-black);
+  border-radius: var(--cp-radius-chip);
+  padding: 10px 12px;
+  box-shadow: var(--px) var(--px) 0 var(--cp-orange-deep);
+  outline: none;
+  min-height: 44px;
+  transition: box-shadow var(--cp-dur) var(--cp-ease);
+}
+.cp-user-form__input:focus { box-shadow: var(--cp-shadow-glow); }
+.cp-user-form__notes { grid-column: 1 / -1; }
+.cp-user-form__textarea {
+  width: 100%;
+  min-height: 120px;
+  font-family: var(--cp-font-mono);
+  font-size: 1rem;
+  color: var(--cp-black);
+  background: var(--cp-off-white);
+  border: var(--cp-border) solid var(--cp-black);
+  border-radius: var(--cp-radius-chip);
+  padding: 12px;
+  box-shadow: var(--px) var(--px) 0 var(--cp-orange-deep);
+  outline: none;
+  resize: vertical;
+  transition: box-shadow var(--cp-dur) var(--cp-ease);
+}
+.cp-user-form__textarea:focus { box-shadow: var(--cp-shadow-glow); }
+.cp-user-form__actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.cp-user-form__save {
+  font-family: var(--cp-font-display);
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--cp-black);
+  background: var(--cp-orange);
+  border: var(--cp-border) solid var(--cp-black);
+  border-radius: var(--cp-radius-chip);
+  padding: 12px 22px;
+  cursor: pointer;
+  min-height: 44px;
+  box-shadow: var(--cp-shadow-pixel);
+  transition: transform var(--cp-dur) var(--cp-ease), box-shadow var(--cp-dur) var(--cp-ease);
+}
+.cp-user-form__save:hover {
+  transform: translate(calc(var(--px) * -0.5), calc(var(--px) * -0.5));
+  box-shadow: var(--cp-shadow-pixel-lg);
+}
+.cp-user-form__save:disabled { opacity: 0.55; cursor: wait; }
+.cp-user-form__msg {
+  font-family: var(--cp-font-mono);
+  font-size: 1rem;
+}
+.cp-user-form__msg.ok { color: #7DF9A0; }
+.cp-user-form__msg.err { color: var(--cp-danger); }
+
+/* Session-Karten — drei Modi */
+.cp-user-sessions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+}
+.cp-user-session {
+  background: rgba(0,0,0,0.25);
+  border: var(--cp-border) solid var(--cp-orange);
+  border-radius: var(--cp-radius-chip);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.cp-user-session.fix    { border-color: var(--cp-danger); }
+.cp-user-session.roast  { border-color: var(--cp-cool); }
+.cp-user-session__tag {
+  font-family: var(--cp-font-display);
+  font-size: 0.55rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--cp-orange);
+}
+.cp-user-session.fix   .cp-user-session__tag { color: var(--cp-danger); }
+.cp-user-session.roast .cp-user-session__tag { color: var(--cp-cool); }
+.cp-user-session__title {
+  font-family: var(--cp-font-display);
+  font-size: 0.95rem;
+  color: var(--cp-off-white);
+  letter-spacing: 0.02em;
+}
+.cp-user-session__progress {
+  font-family: var(--cp-font-mono);
+  font-size: 1rem;
+  color: #D8DDE2;
+}
+.cp-user-session__progress::before {
+  content: '> ';
+  color: var(--cp-orange);
+}
+.cp-user-session__reset {
+  margin-top: auto;
+  font-family: var(--cp-font-display);
+  font-size: 0.6rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--cp-off-white);
+  background: transparent;
+  border: var(--cp-border) solid var(--cp-off-white);
+  border-radius: var(--cp-radius-chip);
+  padding: 9px 14px;
+  cursor: pointer;
+  min-height: 40px;
+  transition: background var(--cp-dur) var(--cp-ease), color var(--cp-dur) var(--cp-ease);
+}
+.cp-user-session__reset:hover { background: var(--cp-off-white); color: var(--cp-navy-deep); }
+.cp-user-session__reset:disabled { opacity: 0.4; cursor: not-allowed; }
+
+@media (max-width: 720px) {
+  .cp-user-form { grid-template-columns: 1fr; }
+  .cp-user-account { flex-direction: column; align-items: stretch; }
+  .cp-user-account__logout { width: 100%; }
 }
 
 /* ─── CP MODAL (Show Summary + Daily Inspiration) ─────────── */
@@ -1682,18 +1963,29 @@ body.has-profile .select-header,
     <p>Drei Wege. Such dir den aus, der gerade passt — du kannst jederzeit wechseln.</p>
   </div>
 
+  <!-- Cockpit-Header — immer sichtbar im Cockpit-View, beschreibt die drei Modi -->
+  <header class="cockpit-header">
+    <h1>Copilot online.</h1>
+    <p>Wähle deinen Modus. <span class="ck-mode-fix">Fix</span> hilft die Probleme direkt anzugehen.<br>
+    <span class="ck-mode-build">Build</span> baut mit dir eine Marketing-Strategie.<br>
+    Der <span class="ck-mode-test">Test</span>-Modus schaut, ob dein Plan wasserdicht ist.</p>
+  </header>
+
   <div class="mode-grid">
     <!-- Specs / Dashboard als 1. Karte, gleicher Card-Stil wie Mode-Karten -->
     <div class="mode-card mode-card--dash cp-dashboard" id="profileDashboard" role="region" aria-label="Dein Profil">
-      <button class="dash-logout" id="accountBtn" aria-label="Ausloggen" title="Ausloggen">×</button>
       <div class="cp-dashboard__status" id="dashStatus">◍ LADE PROFIL</div>
       <h2 class="cp-dashboard__title">Specs</h2>
       <ul class="cp-dashboard__specs" id="dashSpecs">
         <li class="is-loading">scanne …</li>
       </ul>
       <div class="cp-dashboard__actions" id="dashActions" style="display:none;">
-        <button type="button" class="cp-dashboard__btn" id="btnShowSummary">Show Summary</button>
-        <button type="button" class="cp-dashboard__btn" id="btnDailyInspiration">Daily Inspiration</button>
+        <button type="button" class="cp-dashboard__btn cp-energy cp-energy--action" id="btnShowSummary" aria-label="Show Summary">
+          <span class="cp-energy__label"><span class="cp-energy__state">SHOW</span><em class="cp-energy__progress">SUMMARY</em></span>
+        </button>
+        <button type="button" class="cp-dashboard__btn cp-energy cp-energy--action" id="btnDailyInspiration" aria-label="Daily Inspiration">
+          <span class="cp-energy__label"><span class="cp-energy__state">DAILY</span><em class="cp-energy__progress">INSPIRATION</em></span>
+        </button>
       </div>
     </div>
 
@@ -1736,6 +2028,79 @@ body.has-profile .select-header,
       </div>
     </div>
   </div>
+
+  <!-- User-Profile-Eintritt — wechselt zur User-Panel-Section -->
+  <div class="cp-userbar">
+    <button type="button" id="userProfileBtn" class="cp-userbar__btn" aria-label="Userbereich öffnen">User Profile</button>
+  </div>
+
+  <!-- ─── USER PANEL — Account · Profil · Sessions · Logout ───────────── -->
+  <section id="userPanel" class="cp-user-panel" aria-label="Userbereich" hidden>
+    <div class="cp-user-panel__head">
+      <h1>User</h1>
+      <button type="button" id="userBackBtn" class="cp-user-panel__back" aria-label="Zurück zum Cockpit">&lsaquo; Cockpit</button>
+    </div>
+
+    <!-- Account -->
+    <div class="cp-user-card">
+      <div class="cp-user-card__tag">Account</div>
+      <div class="cp-user-account">
+        <div class="cp-user-account__email" id="userEmail">…</div>
+        <button type="button" id="userLogoutBtn" class="cp-user-account__logout" aria-label="Ausloggen">Ausloggen</button>
+      </div>
+    </div>
+
+    <!-- Profil-Editor -->
+    <div class="cp-user-card">
+      <div class="cp-user-card__tag">Profil</div>
+      <h2 class="cp-user-card__title">Specs bearbeiten</h2>
+      <div class="cp-user-form" id="userProfileForm">
+        <div class="cp-user-form__field"><label class="cp-user-form__label" for="pf-Branche">Branche</label><input class="cp-user-form__input" id="pf-Branche" data-spec="Branche" type="text" autocomplete="off"></div>
+        <div class="cp-user-form__field"><label class="cp-user-form__label" for="pf-Angebot">Angebot</label><input class="cp-user-form__input" id="pf-Angebot" data-spec="Angebot" type="text" autocomplete="off"></div>
+        <div class="cp-user-form__field"><label class="cp-user-form__label" for="pf-Zielgruppe">Zielgruppe</label><input class="cp-user-form__input" id="pf-Zielgruppe" data-spec="Zielgruppe" type="text" autocomplete="off"></div>
+        <div class="cp-user-form__field"><label class="cp-user-form__label" for="pf-Teamgroesse">Team</label><input class="cp-user-form__input" id="pf-Teamgroesse" data-spec="Teamgröße" type="text" autocomplete="off"></div>
+        <div class="cp-user-form__field"><label class="cp-user-form__label" for="pf-Kanaele">Aktive Kanäle</label><input class="cp-user-form__input" id="pf-Kanaele" data-spec="Aktive Kanäle" type="text" autocomplete="off"></div>
+        <div class="cp-user-form__field"><label class="cp-user-form__label" for="pf-Level">Marketing-Level</label><input class="cp-user-form__input" id="pf-Level" data-spec="Marketing-Level" type="text" autocomplete="off"></div>
+        <div class="cp-user-form__field"><label class="cp-user-form__label" for="pf-Pain">Aktueller Pain</label><input class="cp-user-form__input" id="pf-Pain" data-spec="Aktueller Pain" type="text" autocomplete="off"></div>
+        <div class="cp-user-form__field"><label class="cp-user-form__label" for="pf-Budget">Budget</label><input class="cp-user-form__input" id="pf-Budget" data-spec="Budget" type="text" autocomplete="off"></div>
+        <div class="cp-user-form__field"><label class="cp-user-form__label" for="pf-Zeit">Zeit</label><input class="cp-user-form__input" id="pf-Zeit" data-spec="Zeit" type="text" autocomplete="off"></div>
+        <div class="cp-user-form__notes">
+          <label class="cp-user-form__label" for="pf-Notes">Notizen (alles, was nicht in die Felder oben passt)</label>
+          <textarea class="cp-user-form__textarea" id="pf-Notes"></textarea>
+        </div>
+      </div>
+      <div class="cp-user-form__actions">
+        <button type="button" id="userSaveBtn" class="cp-user-form__save">Speichern</button>
+        <span class="cp-user-form__msg" id="userSaveMsg" aria-live="polite"></span>
+      </div>
+    </div>
+
+    <!-- Sessions -->
+    <div class="cp-user-card">
+      <div class="cp-user-card__tag">Sessions</div>
+      <h2 class="cp-user-card__title">Modus-Fortschritt</h2>
+      <div class="cp-user-sessions">
+        <div class="cp-user-session fix" data-session-mode="quick">
+          <div class="cp-user-session__tag">Modus 1</div>
+          <div class="cp-user-session__title">Fix</div>
+          <div class="cp-user-session__progress" data-session-progress="quick">— / —</div>
+          <button type="button" class="cp-user-session__reset" data-session-reset="quick">Zurücksetzen</button>
+        </div>
+        <div class="cp-user-session" data-session-mode="holistic">
+          <div class="cp-user-session__tag">Modus 2</div>
+          <div class="cp-user-session__title">Build</div>
+          <div class="cp-user-session__progress" data-session-progress="holistic">— / —</div>
+          <button type="button" class="cp-user-session__reset" data-session-reset="holistic">Zurücksetzen</button>
+        </div>
+        <div class="cp-user-session roast" data-session-mode="roast">
+          <div class="cp-user-session__tag">Modus 3</div>
+          <div class="cp-user-session__title">Test</div>
+          <div class="cp-user-session__progress" data-session-progress="roast">— / —</div>
+          <button type="button" class="cp-user-session__reset" data-session-reset="roast">Zurücksetzen</button>
+        </div>
+      </div>
+    </div>
+  </section>
 
   <!-- System bar — ONLINE · status-dots · CO-PILOT brand -->
   <footer class="cp-sysbar" aria-hidden="true">
@@ -3759,6 +4124,171 @@ inputEl.addEventListener('focus', () => {
     last?.scrollIntoView({ block: 'end', behavior: 'smooth' });
   }, 320);
 });
+
+// ─── USER PANEL — Account · Profil bearbeiten · Sessions zurücksetzen ────────
+(function setupUserPanel() {
+  const openBtn   = document.getElementById('userProfileBtn');
+  const backBtn   = document.getElementById('userBackBtn');
+  const logoutBtn = document.getElementById('userLogoutBtn');
+  const saveBtn   = document.getElementById('userSaveBtn');
+  const saveMsg   = document.getElementById('userSaveMsg');
+  const emailEl   = document.getElementById('userEmail');
+  const notesEl   = document.getElementById('pf-Notes');
+  if (!openBtn || !backBtn) return;
+
+  // Standalone-Mode (file://) hat keinen Server-Auth — User-Bereich blendet aus.
+  if (IS_STANDALONE) {
+    openBtn.style.display = 'none';
+    return;
+  }
+
+  function inputs() {
+    return Array.from(document.querySelectorAll('#userProfileForm .cp-user-form__input'));
+  }
+
+  // Profil-Text in Felder + Notizen-Rest aufteilen.
+  // Idee: für jedes der 9 Felder die passende "Key: Value"-Zeile aus dem Text rausziehen.
+  // Was übrig bleibt landet in der Notes-Textarea.
+  function parseProfileToFields(profileText) {
+    const text = String(profileText || '');
+    let remainder = text;
+    inputs().forEach(inp => {
+      const key = inp.dataset.spec;
+      const escaped = key.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
+      const re = new RegExp('^[ \\t]*' + escaped + ':[ \\t]*(.+?)[ \\t]*$', 'mi');
+      const m = remainder.match(re);
+      if (m) {
+        inp.value = m[1].trim();
+        remainder = remainder.replace(m[0], '');
+      } else {
+        inp.value = '';
+      }
+    });
+    if (notesEl) notesEl.value = remainder.replace(/\n{3,}/g, '\n\n').trim();
+  }
+
+  // Felder + Notizen → ein einziger profile_text. 9 Felder als Key:Value-Block oben,
+  // dann eine Leerzeile, dann die Notes (falls vorhanden).
+  function serializeFieldsToProfile() {
+    const lines = [];
+    inputs().forEach(inp => {
+      const val = (inp.value || '').trim();
+      if (val) lines.push(`${inp.dataset.spec}: ${val}`);
+    });
+    const notes = (notesEl?.value || '').trim();
+    if (notes) {
+      if (lines.length) lines.push('');
+      lines.push(notes);
+    }
+    return lines.join('\n');
+  }
+
+  function renderSessions(sessions) {
+    Object.entries(sessions || {}).forEach(([mode, info]) => {
+      const progEl = document.querySelector(`[data-session-progress="${mode}"]`);
+      const resetBtn = document.querySelector(`[data-session-reset="${mode}"]`);
+      if (!progEl) return;
+      const count = Number(info?.count) || 0;
+      const total = Number(info?.total) || 0;
+      progEl.textContent = `${count} / ${total}`;
+      if (resetBtn) resetBtn.disabled = count === 0;
+    });
+  }
+
+  let loaded = false;
+  async function loadUserPanel() {
+    if (saveMsg) { saveMsg.textContent = ''; saveMsg.className = 'cp-user-form__msg'; }
+    try {
+      const r = await fetch('/api/me', { credentials: 'include' });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const data = await r.json();
+      emailEl.textContent = data.email || '—';
+      parseProfileToFields(data.profile);
+      renderSessions(data.sessions);
+      loaded = true;
+    } catch (err) {
+      console.error('[user-panel] load failed', err);
+      emailEl.textContent = '— (offline)';
+      // Fallback: lokales Profil zeigen, damit der Editor trotzdem nutzbar ist.
+      parseProfileToFields(getProfile());
+    }
+  }
+
+  openBtn.addEventListener('click', () => {
+    document.body.classList.add('is-user-view');
+    document.getElementById('userPanel').hidden = false;
+    loadUserPanel();
+    window.scrollTo(0, 0);
+  });
+
+  backBtn.addEventListener('click', () => {
+    document.body.classList.remove('is-user-view');
+    document.getElementById('userPanel').hidden = true;
+  });
+
+  logoutBtn?.addEventListener('click', () => {
+    window.location.href = '/api/logout';
+  });
+
+  saveBtn?.addEventListener('click', async () => {
+    if (!saveMsg) return;
+    saveBtn.disabled = true;
+    saveMsg.textContent = '… speichern';
+    saveMsg.className = 'cp-user-form__msg';
+    const profileText = serializeFieldsToProfile();
+    if (!profileText) {
+      saveMsg.textContent = 'Mindestens ein Feld oder Notizen ausfüllen.';
+      saveMsg.className = 'cp-user-form__msg err';
+      saveBtn.disabled = false;
+      return;
+    }
+    try {
+      const r = await fetch('/api/profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ profile: profileText }),
+      });
+      if (!r.ok) {
+        const detail = await r.json().catch(() => ({}));
+        throw new Error(detail.error || ('HTTP ' + r.status));
+      }
+      // In-Memory-Cache + localStorage-Mirror aktualisieren, damit Cockpit-SPECS
+      // beim Zurücknavigieren sofort die neuen Werte zeigt.
+      __profileCache = profileText;
+      safeSetItem(PROFILE_KEY, profileText);
+      saveMsg.textContent = '✓ Gespeichert';
+      saveMsg.className = 'cp-user-form__msg ok';
+    } catch (err) {
+      console.error('[user-panel] save failed', err);
+      saveMsg.textContent = 'Fehler: ' + err.message;
+      saveMsg.className = 'cp-user-form__msg err';
+    } finally {
+      saveBtn.disabled = false;
+    }
+  });
+
+  document.querySelectorAll('[data-session-reset]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const mode = btn.dataset.sessionReset;
+      if (!confirm(`Fortschritt für "${mode}" wirklich löschen?`)) return;
+      btn.disabled = true;
+      try {
+        clearSession(mode);              // bereinigt Local + DELETE /api/session
+        // Lokal sofort aktualisieren — Server-Roundtrip ist fire-and-forget.
+        const progEl = document.querySelector(`[data-session-progress="${mode}"]`);
+        if (progEl) {
+          const total = ENERGY_TOTALS[mode] || 0;
+          progEl.textContent = `0 / ${total}`;
+        }
+        if (typeof updateEnergyBars === 'function') updateEnergyBars();
+      } catch (err) {
+        console.error('[user-panel] reset failed', err);
+        btn.disabled = false;
+      }
+    });
+  });
+})();
 
 // visualViewport-API: bei Keyboard-Resize letztes Bot-Bubble sichtbar halten
 if (window.visualViewport) {

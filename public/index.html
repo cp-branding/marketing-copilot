@@ -1156,6 +1156,9 @@ body.composer-open #chatView footer {
   backdrop-filter: blur(8px);
   border-top: 2px solid var(--cp-off-white);
   border-bottom: none;
+  /* Generischer footer-Selector (~Z. 850) wirft sonst einen orangen 4px-Schatten nach oben.
+     Sysbar ist kein Modul-Footer → explizit aushebeln. */
+  box-shadow: none;
   font-family: var(--cp-font-mono); font-size: 13px; letter-spacing: 2px;
   z-index: 50;
   color: #9AA3AC;
